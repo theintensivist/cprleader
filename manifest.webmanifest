@@ -1,0 +1,18 @@
+{
+  "name": "ACLS Code Leader",
+  "short_name": "Code Leader",
+  "description": "Voice-guided cardiac arrest team-leader aid on the 2025 AHA adult algorithms, with a local-time event log.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f191d",
+  "theme_color": "#0f191d",
+  "categories": ["medical", "health", "education"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

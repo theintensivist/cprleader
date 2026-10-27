@@ -1,0 +1,2979 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>ACLS Code Leader</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f191d" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<meta name="description" content="Voice-guided cardiac arrest team-leader aid on the 2025 AHA adult algorithms, with a local-time event log.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Code Leader">
+<style>
+/* Layout: defibrillator-monitor strip. Arrest clock + 2-min cycle ring up top, hard keys below,
+   channel readouts beside them on wide screens. Drug keys use ISO 26825 syringe-label colours. */
+:root {
+  --bg: #edf1f2; --panel: #ffffff; --panel-2: #f5f8f8; --ink: #0d1a1f; --muted: #53656b; --line: #d2dbde; --line-2: #e3e9eb;
+  --ecg: #077a45; --ecg-soft: #def2e7;
+  --co2: #8a5d00; --co2-soft: #fbf0d3;
+  --vaso: #6a34a6; --vaso-ink: #ffffff; --vaso-soft: #efe6f9;
+  --la: #7d878c; --la-ink: #ffffff;
+  --anticho: #1d7a3b; --anticho-ink: #ffffff;
+  --opioid: #1f5fbf;
+  --shock: #c9520c; --shock-soft: #fde8da;
+  --crit: #c3221e; --crit-soft: #fbe2e1;
+  --warn: #a96d00; --warn-soft: #fcefd2;
+  --good: #11743f; --good-soft: #dcf1e5;
+  --focus: #1f5fbf;
+  --f-display: "Barlow Condensed", "Avenir Next Condensed", "Roboto Condensed", "sans-serif-condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 10px; --r-sm: 7px; --navh: 62px;
+  --shadow: 0 1px 0 rgba(13, 26, 31, .04), 0 6px 18px -10px rgba(13, 26, 31, .25);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #081013; --panel: #0f191d; --panel-2: #0b1417; --ink: #e5eef0; --muted: #8fa3a9; --line: #1f2f35; --line-2: #18262b;
+    --ecg: #3fd987; --ecg-soft: #0e2a1c;
+    --co2: #f4c64b; --co2-soft: #2a230e;
+    --vaso: #b48cf3; --vaso-ink: #150b22; --vaso-soft: #21182f;
+    --la: #9aa5aa; --la-ink: #0b1417;
+    --anticho: #52c574; --anticho-ink: #07160c;
+    --opioid: #6fa4ff;
+    --shock: #ff8b3e; --shock-soft: #2e1a0d;
+    --crit: #ff5d53; --crit-soft: #33130f;
+    --warn: #f2b23b; --warn-soft: #2e220b;
+    --good: #3fd987; --good-soft: #0e2a1c;
+    --focus: #6fa4ff;
+    --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 8px 22px -12px rgba(0, 0, 0, .7);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #081013; --panel: #0f191d; --panel-2: #0b1417; --ink: #e5eef0; --muted: #8fa3a9; --line: #1f2f35; --line-2: #18262b;
+  --ecg: #3fd987; --ecg-soft: #0e2a1c;
+  --co2: #f4c64b; --co2-soft: #2a230e;
+  --vaso: #b48cf3; --vaso-ink: #150b22; --vaso-soft: #21182f;
+  --la: #9aa5aa; --la-ink: #0b1417;
+  --anticho: #52c574; --anticho-ink: #07160c;
+  --opioid: #6fa4ff;
+  --shock: #ff8b3e; --shock-soft: #2e1a0d;
+  --crit: #ff5d53; --crit-soft: #33130f;
+  --warn: #f2b23b; --warn-soft: #2e220b;
+  --good: #3fd987; --good-soft: #0e2a1c;
+  --focus: #6fa4ff;
+  --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 8px 22px -12px rgba(0, 0, 0, .7);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body { color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--panel); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+.gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+/* ---------- header ---------- */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--panel); border-bottom: 1px solid var(--line); }
+.top .wrap { padding-block: 8px 0; }
+.top-row { display: flex; align-items: center; gap: 10px; }
+.brand { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.brand b { font-family: var(--f-display); font-weight: 700; font-size: 20px; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.brand .ver { font-family: var(--f-mono); font-size: 11px; color: var(--muted); letter-spacing: .04em; white-space: nowrap; }
+.brand svg { width: 26px; height: 16px; align-self: center; color: var(--ecg); flex: none; }
+.top-actions { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.iconbtn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel-2); }
+.iconbtn svg { width: 20px; height: 20px; }
+.iconbtn[aria-pressed="true"] { background: var(--ecg-soft); border-color: var(--ecg); color: var(--ecg); }
+.iconbtn[aria-pressed="false"] { color: var(--muted); }
+.chip-practice { border: 1px dashed var(--warn); color: var(--warn); background: var(--warn-soft); border-radius: 999px; padding: 6px 10px; font-family: var(--f-mono); font-size: 12px; font-weight: 500; letter-spacing: .04em; white-space: nowrap; }
+
+.clockrow { display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 12px; padding-block: 6px 8px; }
+.lbl { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.clock { font-family: var(--f-display); font-weight: 600; font-size: 52px; line-height: .9; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.clock.is-rosc { color: var(--good); }
+.clock.is-idle { color: var(--muted); }
+.phasebox { justify-self: center; text-align: center; min-width: 0; display: grid; justify-items: center; gap: 5px; }
+.phasebox .chip-practice { padding: 3px 8px; font-size: 10.5px; }
+.phase { display: inline-block; font-family: var(--f-display); font-weight: 700; font-size: 17px; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; border: 1.5px solid currentColor; white-space: nowrap; }
+.phase[data-k="idle"] { color: var(--muted); }
+.phase[data-k="shock"] { color: var(--shock); background: var(--shock-soft); }
+.phase[data-k="nonshock"] { color: var(--ecg); background: var(--ecg-soft); }
+.phase[data-k="unknown"] { color: var(--warn); background: var(--warn-soft); }
+.phase[data-k="rosc"] { color: var(--good); background: var(--good-soft); }
+.phase[data-k="ended"] { color: var(--muted); }
+.mini { text-align: right; }
+.mini .v { font-family: var(--f-display); font-weight: 600; font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
+.mini .v[data-state="ok"] { color: var(--ecg); }
+.mini .v[data-state="warn"] { color: var(--warn); }
+.mini .v[data-state="due"], .mini .v[data-state="crit"] { color: var(--crit); }
+
+.caption { font-size: 13px; color: var(--ink); height: 24px; padding-block: 0 4px; display: flex; gap: 8px; align-items: center; overflow: hidden; transition: color .5s; }
+.caption.is-old { color: var(--muted); }
+.caption.is-old svg { opacity: .45; }
+.caption[hidden] { display: none !important; }
+.caption svg { width: 15px; height: 15px; flex: none; color: var(--ecg); }
+.caption span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* phones: bottom tab bar within thumb reach; wide screens: tabs in the header (see media query) */
+.tabs { position: fixed; z-index: 25; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; background: var(--panel); border-top: 1px solid var(--line); padding-left: max(4px, env(safe-area-inset-left, 0px)); padding-right: max(4px, env(safe-area-inset-right, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: 0 -8px 20px -14px rgba(0, 0, 0, .45); }
+.tab-btn { flex: 1 1 auto; position: relative; border: 0; background: none; height: var(--navh); min-width: 0; padding: 0 3px; display: grid; justify-items: center; align-content: center; gap: 4px; color: var(--muted); font-weight: 700; font-size: 10.5px; letter-spacing: -.005em; }
+.tab-btn svg { width: 23px; height: 23px; }
+.tab-btn .tl { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tab-btn[aria-selected="true"] { color: var(--ecg); }
+.tab-btn[aria-selected="true"]::before { content: ""; position: absolute; top: -1px; left: 24%; right: 24%; height: 3px; border-radius: 0 0 3px 3px; background: var(--ecg); }
+.tab-btn .badge { position: absolute; top: 7px; left: calc(50% + 7px); min-width: 17px; padding: 0 4px; border-radius: 999px; background: var(--warn); color: var(--panel); font-size: 10.5px; line-height: 17px; text-align: center; font-family: var(--f-mono); }
+.tab-btn .live { position: absolute; top: 9px; left: calc(50% + 10px); width: 9px; height: 9px; border-radius: 50%; background: var(--crit); box-shadow: 0 0 0 2px var(--panel); }
+@media (prefers-reduced-motion: no-preference) { .tab-btn .live { animation: live 1.2s ease-in-out infinite; } @keyframes live { 50% { opacity: .35; } } }
+
+/* ---------- main ---------- */
+main .wrap { padding-block: 14px 28px; }
+.tab { display: grid; gap: 14px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 700; font-size: 18px; letter-spacing: .06em; text-transform: uppercase; }
+h3 { font-size: 16px; }
+p { margin: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+
+/* idle */
+.startcard { display: grid; gap: 12px; padding: 20px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+.startcard h1 { font-family: var(--f-display); font-weight: 700; font-size: 30px; line-height: 1.05; letter-spacing: .01em; }
+.startcard p { color: var(--muted); max-width: 62ch; }
+.bigstart { border: 0; border-radius: var(--r); background: var(--crit); color: #fff; padding: 18px 16px; font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .06em; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 80px; white-space: nowrap; }
+.bigstart svg { width: 28px; height: 28px; }
+.ghost { border: 1px solid var(--line); background: var(--panel-2); border-radius: var(--r-sm); padding: 12px 14px; font-weight: 700; min-height: 48px; }
+.cfg { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: baseline; font-size: 14px; }
+.cfg-t { font-weight: 700; font-variant-numeric: tabular-nums; }
+details.fold { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); }
+details.fold > summary { list-style: none; cursor: pointer; padding: 14px; display: flex; gap: 4px 12px; align-items: baseline; flex-wrap: wrap; min-height: 52px; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::after { content: "+"; margin-left: auto; font-family: var(--f-mono); font-size: 18px; color: var(--muted); }
+details.fold[open] > summary::after { content: "–"; }
+.fold-body { padding: 0 14px 14px; display: grid; gap: 10px; }
+.startrow { display: grid; gap: 10px; }
+.resume { display: grid; gap: 10px; border: 1.5px solid var(--warn); background: var(--warn-soft); border-radius: var(--r); padding: 14px; }
+.resume .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.grid2 { display: grid; gap: 14px; }
+.roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field label, .field .flabel { font-size: 12px; font-weight: 700; color: var(--muted); }
+.field input[type="text"], .field input[type="number"], .field select, .txt { width: 100%; padding: 10px 11px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel-2); min-height: 44px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; background: var(--panel-2); flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 10px 12px; font-weight: 700; min-height: 44px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.check { display: flex; gap: 10px; align-items: center; font-weight: 700; }
+.check input { width: 22px; height: 22px; accent-color: var(--ecg); }
+.facts { display: grid; gap: 6px; font-size: 13.5px; color: var(--muted); padding-left: 18px; margin: 0; }
+
+/* active */
+.active { display: grid; gap: 14px; }
+.now { display: grid; grid-template-columns: 112px 1fr; gap: 14px; align-items: center; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+.now[data-tone="crit"] { border-color: var(--crit); background: linear-gradient(0deg, var(--crit-soft), var(--crit-soft)) padding-box; }
+.now[data-tone="shock"] { border-color: var(--shock); background: var(--shock-soft); }
+.now[data-tone="warn"] { border-color: var(--warn); background: var(--warn-soft); }
+.now[data-tone="act"] { border-color: var(--vaso); }
+.now[data-tone="good"] { border-color: var(--good); background: var(--good-soft); }
+.ring { width: 112px; height: 112px; }
+.ring .trk { stroke: var(--line-2); }
+.ring .arc { stroke: var(--ecg); transition: stroke-dashoffset .25s linear, stroke .2s; }
+.ring[data-state="warn"] .arc { stroke: var(--warn); }
+.ring[data-state="due"] .arc, .ring[data-state="crit"] .arc { stroke: var(--crit); }
+.ring[data-state="good"] .arc { stroke: var(--good); }
+.ring text { fill: var(--ink); font-family: var(--f-display); font-variant-numeric: tabular-nums; }
+.ring .r-big { font-size: 30px; font-weight: 600; }
+.ring .r-small { font-size: 11px; fill: var(--muted); font-family: var(--f-mono); letter-spacing: .08em; }
+.headline { font-family: var(--f-display); font-weight: 700; font-size: 30px; line-height: 1.02; letter-spacing: .005em; text-wrap: balance; }
+.sub { margin-top: 6px; color: var(--muted); font-size: 14.5px; }
+.now[data-tone="crit"] .headline { color: var(--crit); }
+.now[data-tone="shock"] .headline { color: var(--shock); }
+.now[data-tone="good"] .headline { color: var(--good); }
+
+.active .colL, .active .colR { display: grid; gap: 12px; min-width: 0; align-content: start; }
+.keys { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.key { grid-column: span 3; position: relative; border: 1.5px solid var(--line); background: var(--panel); border-radius: var(--r); padding: 10px 12px; min-height: 66px; text-align: left; display: grid; align-content: center; gap: 1px; box-shadow: var(--shadow); min-width: 0; }
+.key .kd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.key-sm { grid-column: span 2; min-height: 56px; padding: 8px 10px; box-shadow: none; }
+.key.key-sm .kt { font-size: 18px; padding-right: 20px; }
+.key.key-sm .kd { font-size: 11.5px; }
+.key.key-sm .ks { top: 6px; right: 6px; }
+.key.is-armed { outline: 3px dashed var(--crit); outline-offset: 3px; }
+.kbar { position: absolute; left: 12px; right: 12px; bottom: 7px; height: 5px; border-radius: 3px; background: color-mix(in srgb, currentColor 22%, transparent); overflow: hidden; }
+.kbar b { position: absolute; top: 0; bottom: 0; left: 60%; right: 0; background: color-mix(in srgb, currentColor 30%, transparent); }
+.kbar i { position: absolute; top: 0; bottom: 0; left: 0; width: 0; background: currentColor; border-radius: 3px; transition: width .25s linear; }
+.kbar[hidden] { display: none !important; }
+.btn-undo { flex: 1 1 160px; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+#kBig[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.key .kt { font-family: var(--f-display); font-weight: 700; font-size: 21px; line-height: 1.05; letter-spacing: .02em; padding-right: 30px; }
+.key .kd { font-size: 12.5px; color: inherit; opacity: .78; font-weight: 700; }
+.key .ks { position: absolute; top: 8px; right: 10px; font-family: var(--f-mono); font-size: 11px; font-weight: 500; letter-spacing: .04em; padding: 1px 6px; border-radius: 4px; }
+.key:disabled { opacity: .42; cursor: not-allowed; }
+.key:active:not(:disabled) { transform: translateY(1px); }
+.key-check { grid-column: 1 / -1; min-height: 76px; border-color: var(--ecg); color: var(--ecg); background: var(--ecg-soft); }
+.key-check .kt { font-size: 28px; }
+.key-check.is-due { background: var(--crit); border-color: var(--crit); color: #fff; }
+.key-check.is-soon { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
+@media (prefers-reduced-motion: no-preference) { .key-check.is-due { animation: due 1s steps(2, jump-none) infinite; } @keyframes due { 50% { filter: brightness(1.25); } } }
+.key-epi { background: var(--vaso); border-color: var(--vaso); color: var(--vaso-ink); padding-bottom: 18px; }
+.key-epi .ks { background: rgba(255, 255, 255, .22); }
+.key-epi.is-due { box-shadow: 0 0 0 3px var(--panel), 0 0 0 6px var(--vaso); }
+.key-aa { background: var(--panel); border-color: var(--ink); }
+.key-aa[data-drug="lido"] { background: var(--la); border-color: var(--la); color: var(--la-ink); }
+.key-aa.is-due { box-shadow: 0 0 0 3px var(--panel), 0 0 0 6px var(--ink); }
+.key-aa .ks, .key-plain .ks { background: var(--panel-2); color: var(--muted); }
+.key-rosc { grid-column: 1 / -1; min-height: 54px; border-color: var(--good); color: var(--good); display: flex; align-items: baseline; justify-content: center; gap: 10px; text-align: center; }
+.key-rosc .kt { padding-right: 0; }
+.key-done .ks { background: var(--good-soft); color: var(--good); }
+.key-airway.is-set { border-color: var(--co2); }
+.endrow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+.linkbtn { border: 0; background: none; padding: 8px 0; color: var(--muted); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+.queue { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--panel); }
+.queue li { display: grid; grid-template-columns: 86px 1fr; gap: 10px; padding: 10px 12px; border-top: 1px solid var(--line-2); align-items: start; }
+.queue li:first-child { border-top: 0; }
+.queue .q-l { font-weight: 700; }
+.queue .q-n { font-size: 13px; color: var(--muted); }
+.st { font-family: var(--f-mono); font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; text-align: center; border: 1px solid transparent; white-space: nowrap; }
+.st-overdue { background: var(--crit); color: #fff; }
+.st-due { background: var(--crit-soft); color: var(--crit); border-color: var(--crit); }
+.st-alert { background: var(--co2-soft); color: var(--co2); border-color: var(--co2); }
+.st-soon { background: var(--warn-soft); color: var(--warn); }
+.st-consider { background: var(--panel-2); color: var(--ink); border-color: var(--line); }
+.st-later { color: var(--muted); border-color: var(--line-2); }
+.st-done { color: var(--good); background: var(--good-soft); }
+.st-hold { color: var(--muted); }
+.queue li.is-done .q-l { color: var(--muted); font-weight: 400; }
+.queue li.q-empty { grid-template-columns: 1fr; color: var(--muted); }
+details.later { border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
+details.later[hidden] { display: none !important; }
+details.later > summary { padding: 11px 12px; font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; }
+details.later .queue { border: 0; border-top: 1px solid var(--line-2); border-radius: 0; }
+.queue-later li { padding: 8px 12px; }
+.queue-later .q-l { font-weight: 400; }
+
+.channels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.ch { background: var(--panel); padding: 10px 12px; min-width: 0; display: grid; gap: 2px; align-content: start; }
+.ch .lbl { color: var(--muted); }
+.ch .v { font-family: var(--f-display); font-weight: 600; font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+.ch .d { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.ch-epi .v { color: var(--vaso); }
+.ch-shock .v { color: var(--shock); }
+.ch-co2 .v { color: var(--co2); }
+.ch-pause .v { color: var(--ecg); }
+.spark { width: 100%; height: 22px; display: block; }
+.spark polyline { fill: none; stroke: var(--co2); stroke-width: 1.6; stroke-linejoin: round; }
+.spark .gl { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 3; }
+
+.recent { display: grid; gap: 4px; font-size: 13px; }
+.recent div { display: grid; grid-template-columns: 52px 1fr; gap: 8px; }
+.recent .t { font-family: var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+details.stop { border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); padding: 12px 14px; }
+details.stop summary { font-weight: 700; cursor: pointer; }
+details.stop ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); font-size: 14px; }
+
+/* rosc / ended */
+.bigcard { display: grid; gap: 12px; padding: 16px; border-radius: var(--r); border: 1.5px solid var(--good); background: var(--good-soft); }
+.bigcard .headline { color: var(--good); }
+.rearrest { border: 0; border-radius: var(--r); background: var(--crit); color: #fff; padding: 16px; font-family: var(--f-display); font-weight: 700; font-size: 24px; letter-spacing: .05em; text-transform: uppercase; min-height: 64px; }
+.btnrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: var(--r-sm); padding: 11px 14px; font-weight: 700; min-height: 44px; }
+.btn-primary { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.btn-danger { background: var(--crit); color: #fff; border-color: var(--crit); }
+
+/* causes */
+.cause-list { display: grid; gap: 8px; }
+.cause { display: grid; gap: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; }
+.cause[data-st="treat"] { border-color: var(--shock); }
+.cause[data-st="ruled"] { border-color: var(--line); background: var(--panel-2); }
+.cause-top { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.cause-top h3 { font-size: 16px; }
+.cause .tri { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; flex: none; }
+.cause .tri button { border: 0; background: var(--panel-2); padding: 7px 9px; font-size: 12.5px; font-weight: 700; color: var(--muted); min-height: 36px; }
+.cause .tri button[aria-pressed="true"][data-v="ruled"] { background: var(--ink); color: var(--panel); }
+.cause .tri button[aria-pressed="true"][data-v="treat"] { background: var(--shock); color: #fff; }
+.cause dl { margin: 0; display: grid; grid-template-columns: 64px 1fr; gap: 3px 10px; font-size: 13.5px; }
+.cause dt { color: var(--muted); font-weight: 700; font-size: 12px; padding-top: 1px; }
+.cause dd { margin: 0; }
+
+/* special */
+.sp { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.sp[data-on="true"] { border-color: var(--warn); }
+.sp-head { display: flex; gap: 12px; align-items: center; padding: 12px 14px; }
+.sp-head h3 { font-size: 16px; }
+.sp-head p { font-size: 13px; color: var(--muted); }
+.sp-head .txt-col { min-width: 0; flex: 1; }
+.switch { position: relative; width: 52px; height: 30px; flex: none; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--muted); transition: transform .15s; }
+.switch[aria-checked="true"] { background: var(--warn); border-color: var(--warn); }
+.switch[aria-checked="true"]::after { transform: translateX(22px); background: #fff; }
+.sp-body { border-top: 1px solid var(--line-2); padding: 12px 14px; display: grid; gap: 10px; }
+.sp-body ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+.dose { font-weight: 700; font-variant-numeric: tabular-nums; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.act { border: 1px solid var(--line); background: var(--panel-2); border-radius: var(--r-sm); padding: 9px 12px; font-weight: 700; min-height: 42px; }
+.act-vaso { background: var(--vaso); border-color: var(--vaso); color: var(--vaso-ink); }
+.act-antich { background: var(--anticho); border-color: var(--anticho); color: var(--anticho-ink); }
+.act-opioid { background: repeating-linear-gradient(135deg, var(--opioid) 0 10px, color-mix(in srgb, var(--opioid) 70%, #fff) 10px 14px); border-color: var(--opioid); color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.35); }
+.act-shock { background: var(--shock); border-color: var(--shock); color: #fff; }
+.act-la { background: var(--la); border-color: var(--la); color: var(--la-ink); }
+.src { font-size: 12px; color: var(--muted); }
+
+/* peri-arrest */
+.tree { display: grid; gap: 12px; }
+.q { display: grid; gap: 8px; }
+.q .qt { font-weight: 700; }
+.q .qd { font-size: 13px; color: var(--muted); }
+.card { border: 1.5px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; background: var(--panel); }
+.card[data-k="crit"] { border-color: var(--crit); }
+.card[data-k="shock"] { border-color: var(--shock); }
+.card[data-k="calm"] { border-color: var(--line); }
+.card h3 { font-family: var(--f-display); font-weight: 700; font-size: 22px; letter-spacing: .01em; }
+.card ol, .card ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.tracker { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+.pips { display: inline-flex; gap: 4px; }
+.pips i { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--anticho); }
+.pips i.on { background: var(--anticho); }
+.energy { font-family: var(--f-display); font-weight: 700; font-size: 40px; line-height: 1; color: var(--shock); font-variant-numeric: tabular-nums; }
+
+/* post-ROSC */
+.rgroup { display: grid; gap: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.rgroup h3 { font-family: var(--f-mono); font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 10px 14px 6px; }
+.ritem { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: start; padding: 10px 14px; border-top: 1px solid var(--line-2); cursor: pointer; }
+.ritem input { width: 22px; height: 22px; accent-color: var(--good); margin: 0; }
+.ritem .tgt { font-weight: 700; }
+.ritem .when { font-family: var(--f-mono); font-size: 12px; color: var(--good); font-variant-numeric: tabular-nums; }
+.targets { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.targets div { background: var(--panel); padding: 10px 12px; }
+.targets .v { font-family: var(--f-display); font-weight: 700; font-size: 24px; line-height: 1.05; color: var(--good); font-variant-numeric: tabular-nums; }
+
+/* record */
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.stats div { background: var(--panel); padding: 9px 11px; min-width: 0; }
+.stats .v { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stats .d { font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.logwrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
+.log { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.log td { padding: 7px 10px; border-top: 1px solid var(--line-2); vertical-align: top; }
+.log tr:first-child td { border-top: 0; }
+.log td:first-child { width: 1%; }
+.log td:nth-child(2) { width: 1%; padding-inline: 2px; padding-top: 11px; }
+.log .t { font-family: var(--f-mono); font-size: 12.5px; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.log .tw { display: block; font-size: 11px; color: var(--muted); }
+.log .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--line); }
+.dot-shock { background: var(--shock) !important; } .dot-drug { background: var(--vaso) !important; } .dot-rhythm, .dot-check, .dot-cpr, .dot-start { background: var(--ecg) !important; }
+.dot-rosc, .dot-care { background: var(--good) !important; } .dot-airway, .dot-etco2 { background: var(--co2) !important; } .dot-special, .dot-cause { background: var(--warn) !important; } .dot-end { background: var(--crit) !important; } .dot-peri { background: var(--anticho) !important; }
+.copybox { width: 100%; min-height: 160px; font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--panel-2); padding: 10px; }
+
+/* sheets */
+.scrim { position: fixed; inset: 0; z-index: 40; background: rgba(5, 12, 14, .55); display: grid; align-items: end; justify-items: center; }
+.scrim[hidden] { display: none !important; }
+.sheet { width: min(640px, 100%); max-height: calc(100% - env(safe-area-inset-top, 0px) - 24px); overflow-y: auto; background: var(--panel); border-radius: 16px 16px 0 0; padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 14px; box-shadow: 0 -10px 40px -10px rgba(0, 0, 0, .5); }
+.sheet h2 { font-size: 20px; }
+.sheet-head { display: flex; align-items: center; gap: 10px; }
+.sheet-head .x { margin-left: auto; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chips button { border: 1px solid var(--line); background: var(--panel-2); border-radius: 999px; padding: 9px 14px; font-weight: 700; min-height: 42px; }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice button { border: 1.5px solid var(--line); background: var(--panel-2); border-radius: var(--r); padding: 14px 12px; text-align: left; display: grid; gap: 2px; min-height: 72px; }
+.choice button b { font-family: var(--f-display); font-size: 24px; letter-spacing: .02em; line-height: 1; }
+.choice button span { font-size: 12.5px; color: var(--muted); }
+.choice .shk { border-color: var(--shock); }
+.choice .shk b { color: var(--shock); }
+.choice .non b { color: var(--ecg); }
+.choice .wide { grid-column: 1 / -1; }
+
+/* rhythm check takeover */
+.check-sheet { gap: 12px; }
+.pause { display: flex; align-items: baseline; gap: 10px; }
+.pause .pv { font-family: var(--f-display); font-weight: 700; font-size: 64px; line-height: .9; font-variant-numeric: tabular-nums; color: var(--ecg); }
+.pause[data-state="warn"] .pv { color: var(--warn); }
+.pause[data-state="crit"] .pv { color: var(--crit); }
+.pause .pl { color: var(--muted); font-size: 13px; }
+.shockgo { border: 0; border-radius: var(--r); background: var(--shock); color: #fff; padding: 16px; min-height: 80px; display: grid; gap: 2px; text-align: left; }
+.shockgo b { font-family: var(--f-display); font-size: 30px; letter-spacing: .03em; line-height: 1; }
+.resumego { border: 0; border-radius: var(--r); background: var(--ecg); color: var(--panel); padding: 16px; min-height: 72px; font-family: var(--f-display); font-weight: 700; font-size: 28px; letter-spacing: .04em; text-align: left; }
+.pulse2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pulse2 button { min-height: 72px; border-radius: var(--r); font-family: var(--f-display); font-weight: 700; font-size: 22px; border: 1.5px solid var(--line); background: var(--panel-2); }
+.pulse2 .yes { border-color: var(--good); color: var(--good); }
+.pulse2 .no { border-color: var(--ecg); color: var(--ecg); }
+
+/* toast */
+.toast { position: fixed; z-index: 50; left: 50%; transform: translateX(-50%); bottom: calc(var(--navh) + 10px + env(safe-area-inset-bottom, 0px)); width: min(560px, calc(100% - 32px)); background: var(--ink); color: var(--panel); border-radius: var(--r); padding: 10px 12px 10px 14px; display: flex; gap: 10px; align-items: center; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .6); }
+.toast[hidden] { display: none !important; }
+.toast span { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; }
+.toast button { border: 1px solid color-mix(in srgb, var(--panel) 40%, transparent); background: none; color: var(--panel); border-radius: var(--r-sm); padding: 7px 12px; font-weight: 700; }
+
+/* footer */
+footer .wrap { padding-block: 18px calc(var(--navh) + 28px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); display: grid; gap: 6px; font-size: 12.5px; color: var(--muted); }
+footer b { color: var(--ink); }
+
+/* big view: timer and keys readable from the foot of the bed */
+body.big .active { grid-template-columns: minmax(0, 1fr); }
+body.big .active .colR { display: none; }
+body.big .now { grid-template-columns: 168px 1fr; }
+body.big .ring { width: 168px; height: 168px; }
+body.big .headline { font-size: 40px; }
+body.big .sub { font-size: 17px; }
+body.big .key { min-height: 84px; }
+body.big .key .kt { font-size: 27px; }
+body.big .key .kd { font-size: 14px; }
+body.big .key-check .kt { font-size: 36px; }
+body.big .key-sm { min-height: 64px; }
+body.big .key-sm .kt { font-size: 20px; }
+body.big .key-rosc { min-height: 64px; }
+
+/* wide */
+@media (min-width: 820px) {
+  .tabs { position: static; display: flex; gap: 2px; padding: 0; margin-top: 2px; background: none; border-top: 0; box-shadow: none; }
+  .tab-btn { height: auto; display: flex; align-items: center; gap: 7px; padding: 10px 12px 9px; font-size: 14px; letter-spacing: 0; border-bottom: 3px solid transparent; }
+  .tab-btn svg { width: 18px; height: 18px; }
+  .tab-btn[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ecg); }
+  .tab-btn[aria-selected="true"]::before { display: none; }
+  .tab-btn .badge, .tab-btn .live { position: static; }
+  footer .wrap { padding-block: 18px calc(28px + env(safe-area-inset-bottom, 0px)); }
+  .toast { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .active { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: start; }
+  .active .colL, .active .colR { gap: 14px; }
+  .grid2 { grid-template-columns: 1fr 1fr; }
+  .clock { font-size: 64px; }
+  .cause-list { grid-template-columns: 1fr 1fr; }
+  body.big .clock { font-size: 88px; }
+  body.big .now { grid-template-columns: 240px 1fr; }
+  body.big .ring { width: 240px; height: 240px; }
+  body.big .headline { font-size: 58px; }
+  body.big .sub { font-size: 20px; }
+  body.big .key { min-height: 100px; }
+  body.big .key .kt { font-size: 32px; }
+}
+@media (max-width: 560px) {
+  body.big .now { grid-template-columns: 132px 1fr; }
+  body.big .ring { width: 132px; height: 132px; }
+  body.big .headline { font-size: 32px; }
+  body.big .sub { font-size: 15px; }
+  body.big .key .kt { font-size: 23px; }
+  body.big .key-check .kt { font-size: 32px; }
+  body.big .key { min-height: 74px; }
+}
+.key .kt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 560px) {
+  .brand .ver { display: none; }
+  .brand b { font-size: 18px; }
+  .top-actions { gap: 4px; }
+  .iconbtn { width: 38px; height: 38px; }
+  .chip-practice { padding: 5px 8px; font-size: 11px; }
+}
+@media (max-width: 380px) {
+  .clock { font-size: 44px; }
+  .now { grid-template-columns: 92px 1fr; gap: 10px; }
+  .ring { width: 92px; height: 92px; }
+  .headline { font-size: 25px; }
+  .queue li { grid-template-columns: 74px 1fr; }
+}
+
+/* voice commands */
+.iconbtn { position: relative; }
+.iconbtn-mic .mic-x { display: none; }
+.iconbtn-mic[data-state="off"] { color: var(--muted); }
+.iconbtn-mic[data-state="off"] .mic-x { display: inline; }
+.iconbtn-mic[data-state="on"] { background: var(--crit-soft); border-color: var(--crit); color: var(--crit); }
+.iconbtn-mic[data-state="error"] { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
+.mic-dot { position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--crit); display: none; }
+.iconbtn-mic[data-state="on"] .mic-dot { display: block; }
+@media (prefers-reduced-motion: no-preference) { .iconbtn-mic[data-state="on"] .mic-dot { animation: live 1.2s ease-in-out infinite; } }
+.caption .ic-heard { display: none; }
+.caption[data-kind^="heard"] .ic-said { display: none; }
+.caption[data-kind^="heard"] .ic-heard { display: inline; color: var(--crit); }
+.caption[data-kind="heard-interim"] span { font-style: italic; color: var(--muted); }
+.caption[data-kind="heard-miss"] span { color: var(--muted); }
+.vavail { font-size: 14px; padding: 10px 12px; border-radius: var(--r-sm); background: var(--ecg-soft); }
+.vavail[data-k="warn"] { background: var(--warn-soft); }
+.vgroup { display: grid; gap: 6px; }
+.vgroup h3 { font-family: var(--f-mono); font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.vlist { margin: 0; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
+.vlist dt, .vlist dd { margin: 0; padding: 8px 10px; border-top: 1px solid var(--line-2); font-size: 13.5px; }
+.vlist dt { font-weight: 700; }
+.vlist dd { color: var(--muted); }
+.vlist dt:first-of-type, .vlist dt:first-of-type + dd { border-top: 0; }
+@media (max-width: 420px) { .vlist { grid-template-columns: 1fr; } .vlist dd { border-top: 0; padding-top: 0; } }
+
+/* event log */
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.btn-sm { min-height: 34px; padding: 6px 10px; font-size: 13px; }
+.btn-ghost-danger { color: var(--crit); background: var(--panel); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.log thead th { text-align: left; font-family: var(--f-mono); font-size: 10.5px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.log td:nth-child(2) { width: 1%; padding: 7px 4px 7px 6px; }
+.log td:nth-child(3) { width: 1%; padding: 11px 2px 7px; }
+.log .t { font-size: 13px; font-weight: 500; }
+.log .te { font-family: var(--f-mono); font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.log tr.daysep td { width: auto; padding: 6px 10px; font-weight: 700; font-size: 12.5px; background: var(--panel-2); }
+.logbtns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 620px) { .logbtns { grid-template-columns: repeat(4, max-content); } }
+
+/* ===== mobile pass ===== */
+/* touch: no double-tap zoom, no text selection on controls, no pull-to-refresh mid-code */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { overscroll-behavior-y: none; }
+button, summary, .ritem, .tab-btn { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* 16px stops iPhone Safari zooming into a field on focus */
+.field input[type="text"], .field input[type="number"], .field select, .txt, .roles input { font-size: 16px; }
+
+/* header as one grid so phones can rearrange it */
+.top .wrap { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 4px; align-items: center;
+  grid-template-areas: "brand brand actions" "clock phase mini" "cap cap cap" "tabs tabs tabs"; }
+.top-row, .clockrow { display: contents; }
+.brand { grid-area: brand; min-width: 0; overflow: hidden; }
+.top-actions { grid-area: actions; justify-self: end; }
+.clockbox { grid-area: clock; align-self: end; padding-bottom: 4px; }
+.phasebox { grid-area: phase; align-self: center; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; }
+.mini { grid-area: mini; align-self: end; padding-bottom: 4px; }
+.caption { grid-area: cap; min-width: 0; }
+.tabs { grid-area: tabs; }
+.chip-practice .pl-short { display: none; }
+body.idle .clockbox, body.idle .phasebox, body.idle .mini { display: none; }
+body.idle .top .wrap { padding-block: 8px; }
+
+/* option groups: equal cells that wrap cleanly */
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
+.seg button { background: var(--panel-2); min-width: 0; line-height: 1.2; padding: 10px 8px; text-align: center; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg.seg-many { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.seg.seg-many button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+/* toast moves to the top while a sheet is open, so it never covers the shock button */
+.scrim:not([hidden]) ~ .toast { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 10px); }
+/* sheets: grab handle */
+.sheet::before { content: ""; justify-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: -6px 0 -4px; }
+.sheet { overscroll-behavior: contain; }
+
+/* log: elapsed folds under local time on narrow screens */
+.log td.t .te-sm { display: none; }
+@media (max-width: 480px) {
+  .log th:nth-child(2), .log td.te { display: none; }
+  .log td.t .te-sm { display: block; font-family: var(--f-mono); font-size: 11px; font-weight: 400; color: var(--muted); }
+}
+
+/* install and update banners */
+.installcard { display: grid; grid-template-columns: auto 1fr; gap: 10px 12px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
+.installcard[hidden] { display: none !important; }
+.installcard svg { width: 28px; height: 28px; color: var(--ecg); }
+.installcard p { font-size: 14px; }
+.installcard .btn { grid-column: 1 / -1; }
+.updatebar { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 10px 12px; border-radius: var(--r); background: var(--ecg-soft); border: 1px solid var(--ecg); font-weight: 700; font-size: 14px; }
+.updatebar { margin-bottom: 12px; }
+.updatebar[hidden] { display: none !important; }
+
+/* phones in portrait */
+@media (max-width: 560px) {
+  .brand b { font-size: 17px; }
+  .chip-practice .pl-long { display: none; }
+  .chip-practice .pl-short { display: inline; }
+  /* during a code: rhythm next to the controls, clock and cycle on one line, caption full width */
+  body.live .top .wrap { grid-template-areas: "phase . actions" "clock . mini" "cap cap cap" "tabs tabs tabs"; padding-block: 6px 0; row-gap: 2px; }
+  body.live .brand { display: none; }
+  body.live .phasebox { justify-content: flex-start; }
+  body.live .phase { font-size: 15px; padding: 3px 9px; }
+  body.live .clock { font-size: 46px; }
+  body.live .clockbox, body.live .mini { padding-bottom: 2px; }
+}
+@media (max-width: 420px) {
+  .iconbtn { width: 38px; height: 38px; }
+  .now { grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 12px; }
+  .ring { width: 92px; height: 92px; }
+  .headline { font-size: 25px; }
+  .sub { font-size: 13.5px; margin-top: 4px; }
+  .keys { gap: 7px; }
+  .key { min-height: 60px; padding: 8px 10px; }
+  .key .kt { font-size: 19px; padding-right: 26px; }
+  .key .kd { font-size: 12px; }
+  .key .ks { top: 6px; right: 7px; }
+  .key-check { min-height: 66px; }
+  .key-check .kt { font-size: 25px; padding-right: 0; }
+  .key-epi { padding-bottom: 16px; }
+  .key.key-sm { min-height: 50px; }
+  .key.key-sm .kt { font-size: 17px; }
+  .key-rosc { min-height: 48px; }
+  .key-rosc .kt { padding-right: 0; }
+  .active .colL, .active .colR { gap: 10px; }
+}
+
+/* phones in landscape: one-line header, icon-only tabs, two columns */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root { --navh: 46px; }
+  .top .wrap { grid-template-columns: auto auto auto minmax(0, 1fr) auto; grid-template-areas: "clock phase mini cap actions" "tabs tabs tabs tabs tabs"; padding-block: 4px 0; }
+  .brand { display: none; }
+  body.idle .top .wrap { grid-template-areas: "brand brand brand brand actions" "tabs tabs tabs tabs tabs"; }
+  body.idle .brand { display: flex; }
+  .clockbox .lbl, .mini .lbl { display: none; }
+  .clock { font-size: 34px !important; }
+  .mini .v { font-size: 22px; }
+  .caption { height: auto; padding-block: 0; }
+  .iconbtn { width: 36px; height: 36px; }
+  .tab-btn .tl { display: none; }
+  .tab-btn { gap: 0; }
+  .active { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
+  .now { grid-template-columns: 78px 1fr; padding: 8px 10px; gap: 10px; }
+  .ring { width: 78px; height: 78px; }
+  .headline { font-size: 22px; }
+  .key { min-height: 52px; }
+  .key-check { min-height: 56px; }
+  .key-check .kt { font-size: 22px; }
+  .sheet { max-height: calc(100% - 8px); }
+  .bigstart { min-height: 60px; font-size: 24px; }
+}
+@media (max-width: 420px) {
+  .key.key-epi .kt, .key.key-aa .kt { font-size: 18px; letter-spacing: -0.01em; padding-right: 24px; }
+}
+
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap gutter">
+    <div class="top-row">
+      <div class="brand">
+        <svg viewBox="0 0 26 16" aria-hidden="true"><polyline points="0,9 7,9 9,4 11,13 13,1 15,15 17,9 26,9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        <b>Code Leader</b><span class="ver">ACLS · AHA 2025</span>
+      </div>
+      <div class="top-actions">
+        <button id="btnVoice" class="iconbtn" aria-pressed="true" aria-label="Voice prompts" title="Voice prompts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vw" d="M16.5 8.5a5 5 0 0 1 0 7"/><path class="vw" d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+        </button>
+        <button id="btnMic" class="iconbtn iconbtn-mic" aria-pressed="false" data-state="off" aria-label="Voice commands" title="Voice commands">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/><path class="mic-x" d="M4 3.5l16 17"/></svg>
+          <span class="mic-dot" aria-hidden="true"></span>
+        </button>
+        <button id="btnMetro" class="iconbtn" aria-pressed="false" aria-label="Compression metronome" title="Compression metronome">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l4 18H5z"/><path d="M12 17l5-10"/><path d="M7.5 15h9"/></svg>
+        </button>
+        <button id="btnSettings" class="iconbtn" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="clockrow">
+      <div class="clockbox">
+        <div class="lbl" id="clockLbl">Arrest time</div>
+        <div class="clock is-idle num" id="clock">00:00</div>
+      </div>
+      <div class="phasebox"><span class="phase" id="phase" data-k="idle">Ready</span><button id="btnPractice" class="chip-practice" hidden title="Practice run: tap to change the clock speed"><span class="pl-long">PRACTICE</span><span class="pl-short">SIM</span> <span id="pracSpeed">×1</span></button></div>
+      <div class="mini">
+        <div class="lbl" id="miniLbl">Cycle</div>
+        <div class="v num" id="miniV">—</div>
+      </div>
+    </div>
+    <div class="caption" id="caption" data-kind="said" hidden aria-live="polite">
+      <svg class="ic-said" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
+      <svg class="ic-heard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+      <span id="captionText">Spoken prompts also appear here</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab-btn" role="tab" aria-selected="true" data-tab="arrest" id="t-arrest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h4l2.5-6 4 13 3-9 1.5 2H22"/></svg>
+        <span class="tl">Arrest</span><span class="live" id="liveDot" hidden></span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="causes" id="t-causes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6h11M10 12h11M10 18h11"/><path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></svg>
+        <span class="tl">H’s &amp; T’s</span><span class="badge" id="bCauses" hidden></span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="special" id="t-special">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.5h.01"/></svg>
+        <span class="tl">Special</span><span class="badge" id="bSpecial" hidden></span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="peri" id="t-peri">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3.5 16.5L7 20l3.5-3.5M17 20V4M13.5 7.5L17 4l3.5 3.5"/></svg>
+        <span class="tl">Brady/Tachy</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="rosc" id="t-rosc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg>
+        <span class="tl">Post-ROSC</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="record" id="t-record">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3.5"/></svg>
+        <span class="tl">Log</span></button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap gutter">
+    <div class="updatebar" id="updateBar" hidden><span>An update to Code Leader is ready.</span><button class="btn btn-sm btn-primary" id="btnUpdate">Reload</button></div>
+
+    <!-- ARREST -->
+    <section class="tab" id="tab-arrest" role="tabpanel" aria-labelledby="t-arrest">
+      <div id="idleView" class="tab">
+        <div class="resume" id="resumeBanner" hidden>
+          <b id="resumeText">A code is still open.</b>
+          <div class="row">
+            <button class="btn btn-primary" id="btnResume">Resume that code</button>
+            <button class="btn" id="btnDiscard">Discard it</button>
+          </div>
+        </div>
+        <div class="startcard">
+          <h1>Cardiac arrest, led by the clock</h1>
+          <p>Two-minute cycles, rhythm checks, shock energy and drug timing from the 2025 AHA adult algorithm. Prompts are spoken aloud and every action is time-stamped for the record.</p>
+          <button class="bigstart" id="btnStart">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg>
+            Start code
+          </button>
+          <div class="cfg">
+            <span class="cfg-t" id="cfgText">70 kg · Amiodarone · first shock 200 J</span>
+            <button class="linkbtn" id="btnCfg">Change</button>
+          </div>
+          <button class="ghost" id="btnStartPractice">Practice run <span class="muted" style="font-weight:400">· simulated clock</span></button>
+        </div>
+        <div class="installcard" id="installCard" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg>
+          <p id="installText">Install Code Leader on this phone. It opens full screen and works without internet.</p>
+          <button class="btn btn-primary" id="btnInstall">Install</button>
+        </div>
+        <details class="fold" id="rolesFold">
+          <summary><h2>Team roles</h2><span class="small muted">optional · names go into the record</span></summary>
+          <div class="fold-body"><div class="roles" id="roles"></div></div>
+        </details>
+        <details class="fold">
+          <summary><h2>How it works</h2></summary>
+          <div class="fold-body">
+            <ul class="facts">
+              <li>Tap <b>Rhythm check</b> when pads are on. The check screen times your hands-off pause and gives the next step for the rhythm you pick.</li>
+              <li>The ring counts down each 2-minute cycle. At 15 s it asks for pre-charge and the next compressor.</li>
+              <li>Epinephrine: ASAP in PEA/asystole, after the 2nd shock in VF/pVT, then every 3–5 min. Antiarrhythmic after the 3rd shock.</li>
+              <li>A second epinephrine or antiarrhythmic tap within a minute asks you to tap again, so double taps are not logged as two doses.</li>
+              <li>Mis-tap? <b>Undo</b> sits under the keys for the whole code.</li>
+              <li><b>Big view</b> enlarges the timer and keys for a tablet on the cart that the whole team can read.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+
+      <div id="activeView" class="active" hidden>
+        <div class="colL">
+          <div class="now" id="nowCard" data-tone="calm">
+            <svg class="ring" id="ring" viewBox="0 0 120 120" data-state="ok" aria-hidden="true">
+              <circle class="trk" cx="60" cy="60" r="52" fill="none" stroke-width="9"/>
+              <circle class="arc" id="ringArc" cx="60" cy="60" r="52" fill="none" stroke-width="9" stroke-linecap="round" transform="rotate(-90 60 60)" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+              <text class="r-big" id="ringBig" x="60" y="66" text-anchor="middle">2:00</text>
+              <text class="r-small" id="ringSmall" x="60" y="86" text-anchor="middle">CYCLE</text>
+            </svg>
+            <div>
+              <div class="headline" id="headline" aria-live="assertive">High-quality CPR</div>
+              <div class="sub" id="sub"></div>
+            </div>
+          </div>
+          <div class="keys">
+            <button class="key key-check" id="kCheck"><span class="kt">Rhythm check</span><span class="kd" id="kCheckD">hands off · under 10 s</span></button>
+            <button class="key key-epi" id="kEpi"><span class="kt">Epinephrine</span><span class="kd" id="kEpiD">1 mg IV/IO</span><span class="ks" id="kEpiS">0</span><span class="kbar" id="kEpiBarWrap" aria-hidden="true" hidden><b></b><i id="kEpiBar"></i></span></button>
+            <button class="key key-aa" id="kAA"><span class="kt" id="kAAT">Amiodarone</span><span class="kd" id="kAAD">300 mg</span><span class="ks" id="kAAS">0/2</span></button>
+            <button class="key key-plain" id="kAccess"><span class="kt">IV / IO</span><span class="kd" id="kAccessD">access</span><span class="ks" id="kAccessS" hidden>✓</span></button>
+            <button class="key key-plain key-airway" id="kAirway"><span class="kt">Airway</span><span class="kd" id="kAirwayD">BVM · 30:2</span><span class="ks" id="kAirwayS" hidden>✓</span></button>
+            <button class="key key-sm" id="kSwap"><span class="kt">Swap</span><span class="kd">compressor</span><span class="ks" id="kSwapS">0</span></button>
+            <button class="key key-sm" id="kEtco2"><span class="kt">ETCO₂</span><span class="kd" id="kEtco2D">log value</span></button>
+            <button class="key key-sm" id="kNote"><span class="kt">Note</span><span class="kd">POCUS, labs</span></button>
+            <button class="key key-rosc" id="kRosc"><span class="kt">ROSC</span><span class="kd">pulse + pressure</span></button>
+          </div>
+          <div class="endrow">
+            <button class="btn btn-undo" id="kUndo" hidden>Undo</button>
+            <button class="btn" id="kBig" aria-pressed="false">Big view</button>
+            <button class="linkbtn" id="kEnd">End resuscitation…</button>
+          </div>
+          <span class="small muted" id="startedAt"></span>
+        </div>
+        <div class="colR">
+          <section aria-labelledby="h-q" class="tab" style="gap:8px">
+            <h2 id="h-q">Due next</h2>
+            <ul class="queue" id="queue"></ul>
+            <details class="later" id="laterFold"><summary id="laterSum">Later and done</summary><ul class="queue queue-later" id="queueLater"></ul></details>
+          </section>
+          <div class="channels" id="channels">
+            <div class="ch ch-epi"><span class="lbl">Epi</span><span class="v" id="chEpi">0</span><span class="d" id="chEpiD">no dose yet</span></div>
+            <div class="ch ch-shock"><span class="lbl">Shocks</span><span class="v" id="chShock">0</span><span class="d" id="chShockD">next 200 J</span></div>
+            <div class="ch"><span class="lbl">Antiarrhythmic</span><span class="v" id="chAA">0</span><span class="d" id="chAAD">—</span></div>
+            <div class="ch ch-co2"><span class="lbl">ETCO₂</span><span class="v" id="chCo2">—</span><svg class="spark" id="spark" viewBox="0 0 100 22" preserveAspectRatio="none" aria-hidden="true"><line class="gl" x1="0" x2="100" y1="16.5" y2="16.5"/><polyline id="sparkLine" points=""/></svg></div>
+            <div class="ch ch-pause"><span class="lbl">Hands-off</span><span class="v" id="chPause">—</span><span class="d" id="chPauseD">last pause</span></div>
+            <div class="ch"><span class="lbl">Est. CCF</span><span class="v" id="chCcf">—</span><span class="d">from rhythm checks</span></div>
+          </div>
+          <section class="panel" aria-labelledby="h-recent">
+            <div class="panel-head"><h2 id="h-recent">Last events</h2><div class="btnrow"><button class="btn btn-sm" data-copylog>Copy log</button><button class="btn btn-sm" data-goto="record">Full log</button></div></div>
+            <div class="recent" id="recent"></div>
+          </section>
+          <details class="stop" id="stopInfo" hidden>
+            <summary>Before stopping resuscitation</summary>
+            <ul>
+              <li>Reversible causes reviewed and treated; POCUS findings integrated with the whole picture.</li>
+              <li>ECPR candidacy decided. Hypothermia, toxins, pregnancy and post-lytic PE argue for longer efforts.</li>
+              <li>ETCO₂ persistently under 10 mmHg after 20 min of good CPR is a poor sign, but no single ETCO₂ value should decide termination.</li>
+              <li>Cardiac standstill on ultrasound adds information; it does not decide alone.</li>
+              <li>Team consensus, known goals of care, family present or informed. Document the time and reasoning.</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+
+      <div id="roscView" class="tab" hidden>
+        <div class="bigcard">
+          <div class="headline" id="roscHead">ROSC</div>
+          <p id="roscSub">Start post-arrest care.</p>
+          <div class="targets">
+            <div><span class="lbl">SpO₂</span><div class="v">90–98%</div></div>
+            <div><span class="lbl">PaCO₂</span><div class="v">35–45</div></div>
+            <div><span class="lbl">MAP</span><div class="v">≥65</div></div>
+            <div><span class="lbl">Temp</span><div class="v">≤37.5 °C</div></div>
+          </div>
+        </div>
+        <button class="rearrest" id="btnRearrest">Re-arrest · restart CPR</button>
+        <div class="btnrow">
+          <button class="btn btn-primary" id="btnGoRosc">Open post-ROSC checklist</button>
+          <button class="btn" data-copylog>Copy log</button>
+          <button class="btn" id="btnEndRosc">End code &amp; hand over…</button>
+        </div>
+      </div>
+
+      <div id="endedView" class="tab" hidden>
+        <div class="panel">
+          <h2>Code ended</h2>
+          <p id="endedText" class="muted"></p>
+          <div class="btnrow">
+            <button class="btn btn-primary" data-copylog>Copy log</button>
+            <button class="btn" id="btnGoRecord">Open log</button>
+            <button class="btn" id="btnNewCode">New code…</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAUSES -->
+    <section class="tab" id="tab-causes" role="tabpanel" aria-labelledby="t-causes" hidden>
+      <div>
+        <h2>Reversible causes</h2>
+        <p class="small muted">Mark each as considered or being treated; changes go to the record. POCUS only during rhythm checks, without lengthening the pause.</p>
+      </div>
+      <div class="cause-list" id="causeList"></div>
+    </section>
+
+    <!-- SPECIAL -->
+    <section class="tab" id="tab-special" role="tabpanel" aria-labelledby="t-special" hidden>
+      <div>
+        <h2>Special circumstances</h2>
+        <p class="small muted">Switch on what applies. Doses use the weight in settings (<span id="spW">70</span> kg). Verify against your local protocols.</p>
+      </div>
+      <div class="tab" id="specialList" style="gap:10px"></div>
+    </section>
+
+    <!-- PERI -->
+    <section class="tab" id="tab-peri" role="tabpanel" aria-labelledby="t-peri" hidden>
+      <div class="seg" data-peri-mode><button data-v="brady" aria-pressed="true">Bradycardia</button><button data-v="tachy" aria-pressed="false">Tachycardia</button></div>
+      <p class="small muted">Both pathways are for patients with a pulse. If the pulse is lost, start the arrest clock.</p>
+      <div id="periBody" class="tree"></div>
+    </section>
+
+    <!-- POST-ROSC -->
+    <section class="tab" id="tab-rosc" role="tabpanel" aria-labelledby="t-rosc" hidden>
+      <div>
+        <h2>Post-cardiac arrest care</h2>
+        <p class="small muted" id="roscLine">Checklist from the 2025 AHA post-arrest algorithm. Ticked items are time-stamped.</p>
+      </div>
+      <div class="tab" id="roscList" style="gap:10px"></div>
+    </section>
+
+    <!-- RECORD -->
+    <section class="tab" id="tab-record" role="tabpanel" aria-labelledby="t-record" hidden>
+      <div>
+        <h2>Event log</h2>
+        <p class="small muted num" id="tzLine">Local time</p>
+      </div>
+      <div class="logbtns">
+        <button class="btn btn-primary" id="btnCopy">Copy log</button>
+        <button class="btn" id="btnCopyTable">Copy as table</button>
+        <button class="btn" id="btnSave" hidden>Save .txt</button>
+        <button class="btn" id="btnSaveCsv" hidden>Save .csv</button>
+      </div>
+      <p class="small muted">Copy log gives plain text with local clock times, ready for the notes or a message. Copy as table pastes into Excel or Google Sheets as columns.</p>
+      <textarea class="copybox" id="copyBox" readonly hidden aria-label="Event log text"></textarea>
+      <div class="logwrap"><table class="log" id="logTable"><thead><tr><th>Local time</th><th>Elapsed</th><th><span class="sr">Type</span></th><th>Event</th></tr></thead><tbody></tbody></table></div>
+      <h2>Summary</h2>
+      <div class="stats" id="stats"></div>
+      <div class="btnrow"><button class="btn btn-ghost-danger" id="btnClear">New code…</button></div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap gutter">
+    <div><b>myICUnotes.com</b> by Dr Abhijeet Anand · myicunotes.substack.com</div>
+    <div>A cognitive aid for trained resuscitation teams, built on the 2025 AHA Guidelines for CPR and ECC (Part 9 Adult ALS, Part 10 Special Circumstances, Part 11 Post-Cardiac Arrest Care). It does not replace clinical judgement or local protocols.</div>
+  </div>
+</footer>
+
+<!-- SHEETS -->
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet check-sheet" id="sh-check" role="dialog" aria-modal="true" aria-labelledby="chkTitle" hidden>
+    <div class="sheet-head"><h2 id="chkTitle">Rhythm check</h2></div>
+    <div class="pause" id="pauseBox" data-state="ok"><span class="pv num" id="pauseV">0</span><span class="pl">seconds hands-off<br>target under 10</span></div>
+    <div id="chkStep1" class="choice">
+      <button class="shk" data-r="VF"><b>VF</b><span>shockable</span></button>
+      <button class="shk" data-r="PVT"><b>pVT</b><span>shockable</span></button>
+      <button class="non" data-r="PEA"><b>PEA</b><span>organised, no pulse</span></button>
+      <button class="non" data-r="ASY"><b>Asystole</b><span>check leads and gain</span></button>
+      <button class="wide" data-r="ORG"><b>Organised rhythm</b><span>check pulse, possible ROSC</span></button>
+    </div>
+    <div id="chkShock" hidden class="tab" style="gap:8px">
+      <button class="shockgo" id="btnShock"><b id="shockLbl">Shock delivered · 200 J</b><span>then resume compressions immediately</span></button>
+      <button class="linkbtn" id="btnNoShock">No shock given, resume CPR</button>
+    </div>
+    <div id="chkResume" hidden class="tab" style="gap:8px">
+      <button class="resumego" id="btnResumeCPR">Resume compressions</button>
+      <p class="small muted" id="chkResumeNote"></p>
+    </div>
+    <div id="chkPulse" hidden class="tab" style="gap:8px">
+      <div class="pulse2"><button class="yes" id="btnPulseYes">Pulse present<br><span class="small">ROSC</span></button><button class="no" id="btnPulseNo">No pulse<br><span class="small">PEA · resume CPR</span></button></div>
+    </div>
+    <button class="linkbtn" id="btnChkCancel">Resume CPR without recording a rhythm</button>
+  </div>
+
+  <div class="sheet" id="sh-access" role="dialog" aria-modal="true" aria-labelledby="accTitle" hidden>
+    <div class="sheet-head"><h2 id="accTitle">Vascular access</h2><button class="btn x" data-close>Close</button></div>
+    <p class="small muted">IV is first-line in cardiac arrest. IO is a reasonable alternative when IV is not feasible or delayed.</p>
+    <div class="choice"><button data-acc="IV"><b>IV</b><span>peripheral or central</span></button><button data-acc="IO"><b>IO</b><span>humeral or tibial</span></button></div>
+  </div>
+
+  <div class="sheet" id="sh-airway" role="dialog" aria-modal="true" aria-labelledby="awTitle" hidden>
+    <div class="sheet-head"><h2 id="awTitle">Advanced airway</h2><button class="btn x" data-close>Close</button></div>
+    <p class="small muted">Confirm and monitor placement with waveform capnography. Once in place: 1 breath every 6 s (10/min) with continuous compressions.</p>
+    <div class="choice"><button data-aw="SGA"><b>SGA</b><span>supraglottic airway</span></button><button data-aw="ETT"><b>ETT</b><span>capnography confirmed</span></button></div>
+  </div>
+
+  <div class="sheet" id="sh-etco2" role="dialog" aria-modal="true" aria-labelledby="coTitle" hidden>
+    <div class="sheet-head"><h2 id="coTitle">Log ETCO₂ (mmHg)</h2><button class="btn x" data-close>Close</button></div>
+    <div class="chips" id="coChips"></div>
+    <div class="field"><label for="coIn">Or type a value</label><div class="btnrow"><input class="txt" id="coIn" type="number" inputmode="numeric" min="0" max="120" style="max-width:140px"><button class="btn btn-primary" id="coSave">Log</button></div></div>
+    <p class="small muted">Low or falling: reassess CPR quality. An abrupt sustained rise (often to ≥40) suggests ROSC.</p>
+  </div>
+
+  <div class="sheet" id="sh-note" role="dialog" aria-modal="true" aria-labelledby="noteTitle" hidden>
+    <div class="sheet-head"><h2 id="noteTitle">Add a note</h2><button class="btn x" data-close>Close</button></div>
+    <div class="chips" id="noteChips"></div>
+    <div class="field"><label for="noteIn">Free text</label><div class="btnrow"><input class="txt" id="noteIn" type="text" style="flex:1;min-width:0"><button class="btn btn-primary" id="noteSave">Add</button></div></div>
+  </div>
+
+  <div class="sheet" id="sh-rosc" role="dialog" aria-modal="true" aria-labelledby="roscTitle" hidden>
+    <div class="sheet-head"><h2 id="roscTitle">Confirm ROSC</h2><button class="btn x" data-close>Close</button></div>
+    <ul class="facts"><li>Palpable pulse and measurable blood pressure</li><li>Abrupt sustained rise in ETCO₂ (typically ≥40 mmHg)</li><li>Spontaneous arterial waveform on an arterial line</li></ul>
+    <button class="btn btn-primary" id="btnRoscYes" style="min-height:56px">ROSC confirmed</button>
+  </div>
+
+  <div class="sheet" id="sh-end" role="dialog" aria-modal="true" aria-labelledby="endTitle" hidden>
+    <div class="sheet-head"><h2 id="endTitle">End resuscitation</h2><button class="btn x" data-close>Close</button></div>
+    <p class="small muted">Choose how this code ended. The clock stops and the record is kept.</p>
+    <div class="tab" style="gap:8px" id="endChoices"></div>
+  </div>
+
+  <div class="sheet" id="sh-new" role="dialog" aria-modal="true" aria-labelledby="newTitle" hidden>
+    <div class="sheet-head"><h2 id="newTitle">Start a new code?</h2><button class="btn x" data-close>Close</button></div>
+    <p class="small muted">This clears the current record from this device. Copy it first if you need it.</p>
+    <div class="btnrow"><button class="btn" id="btnNewCopy">Copy record</button><button class="btn btn-danger" id="btnNewYes">Clear and reset</button></div>
+  </div>
+
+  <div class="sheet" id="sh-voice" role="dialog" aria-modal="true" aria-labelledby="vTitle" hidden>
+    <div class="sheet-head"><h2 id="vTitle">Voice commands</h2><button class="btn x" data-close>Close</button></div>
+    <p class="vavail" id="voiceAvail" data-k="ok"></p>
+    <div class="btnrow"><button class="btn btn-primary" id="btnMicStart">Start listening</button></div>
+    <p class="small muted">The app listens for the team’s closed-loop call-outs. Say them as completed actions.</p>
+    <div class="vgroup"><h3>CPR cycle</h3>
+      <dl class="vlist">
+        <dt>“Rhythm check” · “Hands off”</dt><dd>Starts the check and the pause timer</dd>
+        <dt>“VF” · “Pulseless VT” · “PEA” · “Asystole”</dt><dd>Records the rhythm. PEA and asystole restart CPR</dd>
+        <dt>“Organised rhythm”</dt><dd>Opens the pulse check</dd>
+        <dt>“Shock delivered”</dt><dd>Logs the shock and restarts CPR</dd>
+        <dt>“No shock”</dt><dd>Logs no shock and restarts CPR</dd>
+        <dt>“Resume compressions”</dt><dd>Ends the check for a non-shockable rhythm</dd>
+        <dt>“Pulse present” · “No pulse”</dt><dd>Answers the pulse check: ROSC or PEA</dd>
+      </dl></div>
+    <div class="vgroup"><h3>Drugs and procedures</h3>
+      <dl class="vlist">
+        <dt>“Adrenaline given” · “Epi in”</dt><dd>Epinephrine 1 mg</dd>
+        <dt>“Amiodarone given” · “Lidocaine given”</dt><dd>Next antiarrhythmic dose</dd>
+        <dt>“IV in” · “IO in”</dt><dd>Vascular access</dd>
+        <dt>“Tube in” · “i-gel in”</dt><dd>Advanced airway</dd>
+        <dt>“Swap compressors”</dt><dd>Compressor change</dd>
+        <dt>“End tidal 25”</dt><dd>ETCO₂ value in mmHg</dd>
+      </dl></div>
+    <div class="vgroup"><h3>Control</h3>
+      <dl class="vlist">
+        <dt>“Status”</dt><dd>Spoken summary: time, rhythm, shocks, drugs, what is due</dd>
+        <dt>“Note …”</dt><dd>Adds what follows as a note</dd>
+        <dt>“Undo”</dt><dd>Removes the last entry</dd>
+        <dt>“Start code” · “Stop listening”</dt><dd></dd>
+      </dl></div>
+    <ul class="facts">
+      <li>Orders, questions and plans are ignored: “give adrenaline”, “has adrenaline been given?”, “adrenaline in one minute”.</li>
+      <li>A repeat drug dose within 60 s is not logged by voice. Tap the key to log it.</li>
+      <li>ROSC said outside a pulse check opens the confirmation on screen.</li>
+      <li>The app ignores its own spoken prompts. Every voice entry is marked “by voice” in the log.</li>
+      <li>Browsers may send audio to their maker’s speech service. Do not say patient identifiers.</li>
+    </ul>
+  </div>
+
+  <div class="sheet" id="sh-settings" role="dialog" aria-modal="true" aria-labelledby="setTitle" hidden>
+    <div class="sheet-head"><h2 id="setTitle">Settings</h2><button class="btn x" data-close>Done</button></div>
+    <div class="field"><span class="flabel">Theme</span><div class="seg" data-seg="theme"><button data-v="auto">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button></div></div>
+    <label class="check"><input type="checkbox" data-setting="big" id="bigSet"> Big view during a code (tablet on the cart)</label>
+    <div class="field"><span class="flabel">Voice commands: accent of the team</span><div class="seg" data-seg="srLang"><button data-v="en-GB">English (UK)</button><button data-v="en-US">English (US)</button><button data-v="en-IN">English (India)</button></div></div>
+    <div class="btnrow"><button class="btn" id="btnVoiceHelp">Voice command list</button></div>
+    <div class="field"><label for="wSet">Weight (kg), for lidocaine and antidote doses</label><input type="number" id="wSet" data-setting="weightKg" inputmode="decimal" min="20" max="250"></div>
+    <div class="field"><span class="flabel">Antiarrhythmic</span><div class="seg" data-seg="aaDrug"><button data-v="amio">Amiodarone</button><button data-v="lido">Lidocaine</button></div></div>
+    <div class="field"><span class="flabel">First shock</span><div class="seg" data-seg="energyFirst"><button data-v="120">120 J</button><button data-v="150">150 J</button><button data-v="200">200 J</button><button data-v="360">360 J</button></div></div>
+    <label class="check"><input type="checkbox" data-setting="energyEscalate" id="escSet"> Escalate later shocks</label>
+    <div class="field"><span class="flabel">Device maximum</span><div class="seg" data-seg="energyMax"><button data-v="200">200 J</button><button data-v="300">300 J</button><button data-v="360">360 J</button></div></div>
+    <div class="field"><span class="flabel">Epinephrine voice reminder (window stays 3–5 min)</span><div class="seg" data-seg="epiTargetMin"><button data-v="3">3 min</button><button data-v="4">4 min</button><button data-v="5">5 min</button></div></div>
+    <div class="field"><label for="rateSet">Voice speed <span id="rateV" class="num"></span></label><input type="range" id="rateSet" data-setting="voiceRate" min="0.8" max="1.4" step="0.05"></div>
+    <div class="field"><label for="bpmSet">Metronome <span id="bpmV" class="num"></span> /min</label><input type="range" id="bpmSet" data-setting="bpm" min="100" max="120" step="2"></div>
+    <div class="btnrow"><button class="btn" id="btnTestVoice">Test voice</button></div>
+    <p class="src">Drug keys follow ISO 26825 syringe-label colours where a class exists: vasopressor violet, local anaesthetic grey, anticholinergic green, opioid antagonist blue-striped.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status"><span id="toastText"></span><button id="toastUndo">Undo</button></div>
+
+<script>
+/* Code Leader engine: deterministic adult ACLS logic (AHA 2025 algorithms).
+   Pure JavaScript, no DOM. Every function takes the state and a timestamp (ms),
+   so the same code runs in the browser and in headless tests. */
+(function (root) {
+  'use strict';
+
+  const SEC = 1000, MIN = 60 * SEC;
+
+  const CFG = {
+    CYCLE: 2 * MIN,          // CPR cycle between rhythm checks
+    PRECHARGE: 15 * SEC,     // warn before the check: pre-charge, next compressor
+    CHECK_GRACE: 10 * SEC,   // check becomes overdue after this
+    EPI_MIN: 3 * MIN,        // epinephrine every 3-5 min
+    EPI_MAX: 5 * MIN,
+    AA_GAP: { amio: 3 * MIN, lido: 5 * MIN },
+    ECPR_AT: 10 * MIN,       // prompt to decide ECPR candidacy early
+    STOP_INFO_AT: 15 * MIN,
+    CONTINUE_AT: 20 * MIN,   // "consider appropriateness of continued resuscitation"
+    PMCD_ALERT: 4 * MIN,     // pregnancy: begin hysterotomy if no ROSC
+    PMCD_TARGET: 5 * MIN,    // aim delivery by ~5 min
+    PAUSE_AMBER: 7 * SEC,
+    PAUSE_WARN: 10 * SEC,    // hands-off pause target < 10 s
+    LYTIC_CPR: 60 * MIN,     // continue CPR 60-90 min after thrombolysis for PE
+  };
+
+  const RHYTHMS = {
+    VF:  { short: 'VF',       long: 'Ventricular fibrillation',      shockable: true },
+    PVT: { short: 'pVT',      long: 'Pulseless VT',                  shockable: true },
+    PEA: { short: 'PEA',      long: 'Pulseless electrical activity', shockable: false },
+    ASY: { short: 'Asystole', long: 'Asystole',                      shockable: false },
+  };
+
+  const CAUSES = [
+    { id: 'hypovol', name: 'Hypovolaemia', cue: 'Haemorrhage, sepsis, third-spacing, GI bleed', act: 'Fluid or blood bolus, haemorrhage control, massive transfusion protocol', pocus: 'Small hyperdynamic LV, collapsed IVC' },
+    { id: 'hypoxia', name: 'Hypoxia', cue: 'Airway obstruction, tube displacement, apnoea before arrest', act: '100% O₂, confirm chest rise and waveform capnography, reassess the airway', pocus: 'Lung sliding, consolidation' },
+    { id: 'acid', name: 'Hydrogen ion (acidosis)', cue: 'DKA, renal failure, lactic acidosis, toxins', act: 'Ventilate well. Bicarbonate only for specific indications (hyperkalaemia, sodium-channel blocker toxicity)', pocus: '' },
+    { id: 'k', name: 'Hypo- / hyperkalaemia', cue: 'Dialysis patient, rhabdomyolysis, diuretics; check blood gas K⁺', act: 'Hyper-K: calcium, insulin–glucose, ± bicarbonate, urgent dialysis. Hypo-K: IV potassium and magnesium per protocol', pocus: '' },
+    { id: 'hypothermia', name: 'Hypothermia', cue: 'Exposure, immersion; measure core temperature', act: 'Active rewarming; ECPR is the preferred rewarming route in hypothermic arrest', pocus: '' },
+    { id: 'tension', name: 'Tension pneumothorax', cue: 'Trauma, positive-pressure ventilation, recent line, severe asthma', act: 'Needle or finger thoracostomy', pocus: 'Absent lung sliding, lung point' },
+    { id: 'tamponade', name: 'Cardiac tamponade', cue: 'After cardiac surgery, chest trauma, malignancy, dissection', act: 'Pericardiocentesis under ultrasound; resuscitative thoracotomy in trauma', pocus: 'Effusion with RV diastolic collapse' },
+    { id: 'toxins', name: 'Toxins', cue: 'History, empty packets, infusions running, local anaesthetic given', act: 'Specific antidote (see Special tab); prolonged CPR; consider ECPR', pocus: '' },
+    { id: 'pe', name: 'Thrombosis, pulmonary', cue: 'Immobility, malignancy, post-op, known DVT, pregnancy', act: 'Consider thrombolysis for suspected PE arrest; continue CPR 60–90 min after a lytic', pocus: 'Dilated RV, septal flattening, DVT' },
+    { id: 'mi', name: 'Thrombosis, coronary', cue: 'Chest pain before arrest, ischaemic ECG, VF arrest', act: 'After ROSC: 12-lead and cath lab. Intra-arrest PCI or ECPR in selected patients', pocus: 'Regional wall-motion abnormality' },
+  ];
+
+  const DEFAULTS = {
+    weightKg: 70, aaDrug: 'amio', energyFirst: 200, energyEscalate: false, energyMax: 360,
+    epiTargetMin: 4, voice: true, voiceRate: 1.05, bpm: 110,
+  };
+
+  const last = a => (a && a.length ? a[a.length - 1] : null);
+  const r5 = n => Math.round(n / 5) * 5;
+
+  function fmt(ms) {
+    let s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60); s -= m * 60;
+    const ss = String(s).padStart(2, '0');
+    return h ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`;
+  }
+  function clock(ms) {
+    let s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60); s -= m * 60;
+    const mm = String(m).padStart(2, '0'), ss = String(s).padStart(2, '0');
+    return h ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+  }
+
+  function newState() {
+    return {
+      v: 1, phase: 'idle', practice: false, t0: null,
+      cycleStart: null, cycleNo: 0,
+      inCheck: false, checkStart: null, checkRhythm: null,
+      rhythm: null, rhythms: [], shocks: [], epi: [], aa: [],
+      access: null, airway: null, swaps: [], pauses: [], etco2: [],
+      roscAt: null, roscs: [], rearrests: [], endAt: null, endReason: null,
+      causes: {}, special: {}, rosc: {}, peri: [], lyticAt: null,
+      roles: {}, log: [], spoken: {},
+    };
+  }
+
+  function add(s, t, type, text) { s.log.push({ t, type, text }); }
+  function endPause(s, t) {
+    if (s.inCheck && s.checkStart != null) s.pauses.push({ start: s.checkStart, end: t });
+    s.inCheck = false; s.checkStart = null; s.checkRhythm = null;
+  }
+  function startCycle(s, t) { s.cycleNo += 1; s.cycleStart = t; }
+  function isShockable(r) { return !!(r && RHYTHMS[r] && RHYTHMS[r].shockable); }
+  function nextEnergy(s, cfg) {
+    cfg = Object.assign({}, DEFAULTS, cfg);
+    if (s.shocks.length === 0) return cfg.energyFirst;
+    return cfg.energyEscalate ? Math.max(cfg.energyFirst, cfg.energyMax) : cfg.energyFirst;
+  }
+
+  function aaPlan(s, cfg) {
+    cfg = Object.assign({}, DEFAULTS, cfg);
+    const drug = s.aa.length ? s.aa[0].drug : cfg.aaDrug;
+    const w = cfg.weightKg;
+    const plan = drug === 'lido'
+      ? [
+          { n: 1, name: 'Lidocaine', dose: `${r5(w)}–${r5(w * 1.5)} mg`, text: `Lidocaine 1–1.5 mg/kg (${r5(w)}–${r5(w * 1.5)} mg)`, say: 'Lidocaine first dose due.' },
+          { n: 2, name: 'Lidocaine', dose: `${r5(w * 0.5)}–${r5(w * 0.75)} mg`, text: `Lidocaine 0.5–0.75 mg/kg (${r5(w * 0.5)}–${r5(w * 0.75)} mg)`, say: 'Lidocaine second dose due.' },
+        ]
+      : [
+          { n: 1, name: 'Amiodarone', dose: '300 mg', text: 'Amiodarone 300 mg IV/IO bolus', say: 'Amiodarone three hundred milligrams due.' },
+          { n: 2, name: 'Amiodarone', dose: '150 mg', text: 'Amiodarone 150 mg IV/IO', say: 'Amiodarone one hundred fifty milligrams due.' },
+        ];
+    return { drug, plan, given: s.aa.length, next: plan[s.aa.length] || null };
+  }
+
+  /* ---------- actions: mutate state, return optional speech ---------- */
+  const act = {
+    start(s, t, opt) {
+      opt = opt || {};
+      const keepLog = s.phase === 'idle' ? s.log.slice() : [];
+      const keepPeri = s.phase === 'idle' ? s.peri.slice() : [];
+      const roles = s.roles || {};
+      Object.assign(s, newState());
+      s.log = keepLog; s.peri = keepPeri; s.roles = roles;
+      s.phase = 'arrest'; s.t0 = t; s.practice = !!opt.practice;
+      add(s, t, 'start', s.practice ? 'Practice run started: CPR, bag-mask O₂, attach pads' : 'Arrest clock started: CPR, bag-mask O₂, attach pads');
+      const named = Object.entries(roles).filter(([, v]) => v && v.trim());
+      if (named.length) add(s, t, 'team', 'Roles: ' + named.map(([k, v]) => `${k} ${v.trim()}`).join(' · '));
+      return { say: 'Code started. Start compressions. Bag mask with oxygen. Attach pads, then analyse the rhythm.' };
+    },
+    check(s, t) {
+      if (s.phase !== 'arrest' || s.inCheck) return {};
+      s.inCheck = true; s.checkStart = t; s.checkRhythm = null;
+      add(s, t, 'check', `Rhythm check ${s.cycleNo + 1}: hands off`);
+      return { say: 'Analyse the rhythm. Keep the pause under ten seconds.' };
+    },
+    rhythm(s, t, cfg, r) {
+      if (!s.inCheck) act.check(s, t);
+      s.checkRhythm = r; s.rhythm = r; s.rhythms.push({ t, r });
+      add(s, t, 'rhythm', RHYTHMS[r].long);
+      if (isShockable(r)) return { say: `Shockable. Shock ${nextEnergy(s, cfg)} joules. Everyone clear.` };
+      return { say: s.epi.length === 0 ? 'Non shockable. Resume compressions. Epinephrine as soon as possible.' : 'Non shockable. Resume compressions.' };
+    },
+    organised(s, t) {
+      if (!s.inCheck) act.check(s, t);
+      s.checkRhythm = 'ORG';
+      add(s, t, 'rhythm', 'Organised rhythm: pulse check');
+      return { say: 'Organised rhythm. Check pulse. Ten seconds.' };
+    },
+    shock(s, t, cfg) {
+      const J = nextEnergy(s, cfg);
+      s.shocks.push({ t, J });
+      add(s, t, 'shock', `Shock ${s.shocks.length} delivered · ${J} J`);
+      endPause(s, t); startCycle(s, t);
+      return { say: 'Shock delivered. Resume compressions now.' };
+    },
+    resume(s, t) {
+      endPause(s, t); startCycle(s, t);
+      add(s, t, 'cpr', `CPR resumed · cycle ${s.cycleNo}`);
+      return { say: 'Resume compressions.' };
+    },
+    epi(s, t) {
+      s.epi.push(t);
+      add(s, t, 'drug', `Epinephrine 1 mg IV/IO · dose ${s.epi.length}`);
+      return {};
+    },
+    aa(s, t, cfg) {
+      const p = aaPlan(s, cfg);
+      if (!p.next) return {};
+      s.aa.push({ t, drug: p.drug, n: p.next.n, text: p.next.text });
+      add(s, t, 'drug', p.next.text);
+      return {};
+    },
+    access(s, t, route) {
+      s.access = { t, route };
+      add(s, t, 'access', route === 'IO' ? 'IO access established' : 'IV access established');
+      return {};
+    },
+    airway(s, t, type) {
+      s.airway = { t, type };
+      add(s, t, 'airway', type === 'ETT' ? 'Endotracheal tube placed · waveform capnography confirmed' : 'Supraglottic airway placed · capnography on');
+      return { say: 'Advanced airway in. Continuous compressions. One breath every six seconds.' };
+    },
+    swap(s, t) { s.swaps.push(t); add(s, t, 'team', `Compressor swap ${s.swaps.length}`); return {}; },
+    etco2(s, t, v) {
+      const prev = last(s.etco2);
+      s.etco2.push({ t, v });
+      add(s, t, 'etco2', `ETCO₂ ${v} mmHg`);
+      if (prev && v - prev.v >= 10 && v >= 35) return { say: 'Sudden rise in end tidal carbon dioxide. Check for return of circulation at the next rhythm check.' };
+      if (v < 10) return { say: 'End tidal carbon dioxide is low. Check compression quality.' };
+      return {};
+    },
+    rosc(s, t) {
+      endPause(s, t);
+      s.phase = 'rosc'; s.roscAt = t; s.roscs.push(t);
+      add(s, t, 'rosc', 'ROSC');
+      return { say: 'Return of spontaneous circulation. Start post arrest care. Blood pressure, oxygen saturation, twelve lead E C G.' };
+    },
+    rearrest(s, t) {
+      s.phase = 'arrest'; s.rearrests.push(t); s.roscAt = null;
+      s.cycleStart = null; s.inCheck = false; s.checkStart = null; s.checkRhythm = null;
+      add(s, t, 'start', 'Re-arrest: CPR restarted');
+      return { say: 'Re arrest. Start compressions. Attach pads and analyse the rhythm.' };
+    },
+    end(s, t, reason) {
+      endPause(s, t);
+      s.phase = 'ended'; s.endAt = t; s.endReason = reason;
+      add(s, t, 'end', reason);
+      return {};
+    },
+    note(s, t, text) { add(s, t, 'note', text); return {}; },
+    cause(s, t, id, status) {
+      s.causes[id] = status;
+      const c = CAUSES.find(x => x.id === id);
+      const lbl = { open: 'not reviewed', ruled: 'considered', treat: 'treating' }[status] || status;
+      add(s, t, 'cause', `${c ? c.name : id}: ${lbl}`);
+      return {};
+    },
+    special(s, t, id, on, name) {
+      s.special[id] = on ? t : null;
+      add(s, t, 'special', `${name || id}: ${on ? 'activated' : 'cleared'}`);
+      return {};
+    },
+    specialDose(s, t, id, text) {
+      if (id === 'pe-lytic') s.lyticAt = t;
+      add(s, t, 'drug', text);
+      return {};
+    },
+    roscItem(s, t, id, on, text) {
+      s.rosc[id] = on ? t : null;
+      if (on) add(s, t, 'care', text);
+      return {};
+    },
+    peri(s, t, kind, text) {
+      s.peri.push({ t, kind, text });
+      add(s, t, 'peri', text);
+      return {};
+    },
+  };
+
+  /* ---------- status helpers ---------- */
+  function epiTask(s, t) {
+    const base = { id: 'epi', label: 'Epinephrine 1 mg IV/IO' };
+    if (!s.rhythm) return Object.assign(base, { status: 'later', note: 'after the first rhythm check' });
+    const nonShockSeen = s.rhythms.some(h => !isShockable(h.r));
+    if (s.epi.length === 0) {
+      if (!isShockable(s.rhythm) || nonShockSeen) return Object.assign(base, { status: 'due', note: 'ASAP for non-shockable rhythm', first: true });
+      if (s.shocks.length >= 2) return Object.assign(base, { status: 'due', note: 'VF/pVT persists after 2nd shock', first: true });
+      return Object.assign(base, { status: 'later', note: `after 2nd shock if VF/pVT persists (${s.shocks.length}/2)` });
+    }
+    const since = t - last(s.epi);
+    const n = s.epi.length;
+    if (since < CFG.EPI_MIN) return Object.assign(base, { status: 'later', eta: CFG.EPI_MIN - since, since, note: `dose ${n + 1} window opens in ${fmt(CFG.EPI_MIN - since)}` });
+    if (since <= CFG.EPI_MAX) return Object.assign(base, { status: 'due', since, note: `${fmt(since)} since dose ${n} (every 3–5 min)` });
+    return Object.assign(base, { status: 'overdue', since, note: `${fmt(since)} since dose ${n}` });
+  }
+
+  function aaTask(s, t, cfg) {
+    const p = aaPlan(s, cfg);
+    const base = { id: 'aa', label: p.next ? `${p.next.name} ${p.next.dose}` : `${p.plan[0].name}` };
+    if (!p.next) return Object.assign(base, { status: 'done', note: 'both doses given' });
+    if (!isShockable(s.rhythm)) return p.given ? Object.assign(base, { status: 'hold', note: 'only for shock-refractory VF/pVT' }) : null;
+    if (p.given === 0) {
+      if (s.shocks.length >= 3) return Object.assign(base, { status: 'due', note: 'shock-refractory VF/pVT (after 3rd shock)' });
+      return Object.assign(base, { status: 'later', note: `after 3rd shock if refractory (${s.shocks.length}/3)` });
+    }
+    const prev = last(s.aa);
+    const after = s.shocks.filter(x => x.t > prev.t).length;
+    const gap = CFG.AA_GAP[p.drug] || CFG.AA_GAP.amio;
+    const since = t - prev.t;
+    if (after >= 1 && since >= gap) return Object.assign(base, { status: 'due', note: 'still refractory after further shock' });
+    return Object.assign(base, { status: 'later', note: after < 1 ? 'if VF/pVT persists after the next shock' : `eligible in ${fmt(gap - since)}` });
+  }
+
+  const ORDER = { overdue: 0, due: 1, alert: 2, soon: 3, consider: 4, later: 5, hold: 6, done: 7 };
+
+  /* ---------- advise: what the leader should do now ---------- */
+  function advise(s, t, cfg) {
+    cfg = Object.assign({}, DEFAULTS, cfg);
+    const o = { headline: '', sub: '', tone: 'calm', tasks: [], speak: [], ring: null, elapsed: s.t0 != null ? t - s.t0 : 0 };
+    const say = (key, text, prio) => o.speak.push({ key, text, prio: prio || 0 });
+
+    if (s.phase === 'idle') { o.headline = 'Ready'; o.sub = 'Assign roles, then start the arrest clock'; return o; }
+    if (s.phase === 'ended') { o.headline = 'Code ended'; o.sub = s.endReason || ''; o.tone = 'calm'; return o; }
+    if (s.phase === 'rosc') {
+      const since = t - s.roscAt;
+      o.tone = 'good';
+      o.headline = 'ROSC: post-arrest care';
+      o.sub = `ROSC ${fmt(since)} ago · MAP ≥65 · SpO₂ 90–98% · 12-lead ECG`;
+      o.ring = { mode: 'rosc', ms: since, frac: 1, state: 'good' };
+      return o;
+    }
+
+    const el = t - s.t0;
+    const shockable = isShockable(s.rhythm);
+    let checkTask, cycleState = null, left = null;
+
+    if (s.inCheck) {
+      const p = t - s.checkStart;
+      const st = p >= CFG.PAUSE_WARN ? 'crit' : p >= CFG.PAUSE_AMBER ? 'warn' : 'ok';
+      o.ring = { mode: 'pause', ms: p, frac: Math.min(1, p / CFG.PAUSE_WARN), state: st };
+      if (p >= CFG.PAUSE_WARN) say('pause-' + s.checkStart, 'Ten seconds. Start chest compressions.', 2);
+      const cr = s.checkRhythm;
+      if (!cr) { o.headline = 'Hands off: identify rhythm'; o.sub = 'Keep the pause under 10 s'; o.tone = 'crit'; }
+      else if (cr === 'ORG') { o.headline = 'Pulse check, 10 s maximum'; o.sub = 'Pulse present → ROSC · No pulse → PEA, resume CPR'; o.tone = 'crit'; }
+      else if (isShockable(cr)) { o.headline = `Shock ${nextEnergy(s, cfg)} J. Everyone clear`; o.sub = 'Resume compressions immediately after the shock'; o.tone = 'shock'; }
+      else { o.headline = 'Resume compressions'; o.sub = s.epi.length ? 'Start the next 2-minute cycle' : 'Then epinephrine 1 mg ASAP'; o.tone = 'act'; }
+    } else if (s.cycleStart == null) {
+      o.ring = { mode: 'first', ms: el, frac: 0, state: 'due' };
+      checkTask = { id: 'check', label: 'First rhythm check', status: 'due', note: 'as soon as pads are on' };
+    } else {
+      const into = t - s.cycleStart; left = CFG.CYCLE - into;
+      cycleState = left > CFG.PRECHARGE ? 'ok' : left > 0 ? 'warn' : (-left <= CFG.CHECK_GRACE ? 'due' : 'crit');
+      o.ring = { mode: 'cycle', ms: left, frac: Math.min(1, into / CFG.CYCLE), state: cycleState, cycle: s.cycleNo };
+      if (cycleState === 'warn') say('pre-' + s.cycleNo, 'Fifteen seconds to the next analysis. Next compressor get ready. Pre-charge the defibrillator.', 1);
+      if (cycleState === 'due') say('chk-' + s.cycleNo, 'Two minutes are up. Time to analyse the rhythm.', 2);
+      if (cycleState === 'crit') say('chkod-' + s.cycleNo, 'Rhythm analysis overdue.', 2);
+      checkTask = {
+        id: 'check', label: `Rhythm check ${s.cycleNo + 1}`,
+        status: cycleState === 'ok' ? 'later' : cycleState === 'warn' ? 'soon' : cycleState === 'due' ? 'due' : 'overdue',
+        eta: Math.max(0, left),
+        note: cycleState === 'ok' ? `in ${fmt(left)}` : cycleState === 'warn' ? `in ${fmt(left)} · pre-charge, next compressor ready` : cycleState === 'due' ? 'now' : `overdue by ${fmt(-left)}`,
+      };
+    }
+    if (checkTask) o.tasks.push(checkTask);
+
+    // Epinephrine
+    const e = epiTask(s, t);
+    o.tasks.push(e);
+    if (!s.inCheck) {
+      const n = s.epi.length;
+      if (e.status === 'due' && n === 0) say('epi-0', 'Epinephrine one milligram due.', 1);
+      if (n > 0 && e.since != null && e.since >= Math.max(CFG.EPI_MIN, cfg.epiTargetMin * MIN) && e.since <= CFG.EPI_MAX) say('epi-' + n, 'Epinephrine due.', 1);
+      if (e.status === 'overdue') say('epiod-' + n, 'Epinephrine overdue.', 1);
+    }
+
+    // Access
+    o.tasks.push(s.access
+      ? { id: 'access', label: `${s.access.route} access`, status: 'done', note: `at ${clock(s.access.t - s.t0)}` }
+      : { id: 'access', label: 'IV / IO access', status: 'due', note: 'IV first; IO if IV not feasible or delayed' });
+
+    // Antiarrhythmic
+    const a = aaTask(s, t, cfg);
+    if (a) {
+      o.tasks.push(a);
+      if (a.status === 'due' && !s.inCheck) say('aa-' + s.aa.length, aaPlan(s, cfg).next.say, 1);
+    }
+
+    // Airway
+    if (s.airway) o.tasks.push({ id: 'airway', label: s.airway.type === 'ETT' ? 'Endotracheal tube' : 'Supraglottic airway', status: 'done', note: '1 breath every 6 s, continuous compressions' });
+    else o.tasks.push({ id: 'airway', label: 'Advanced airway + capnography', status: (s.epi.length > 0 || s.cycleNo >= 2) ? 'consider' : 'later', note: 'SGA or ETT · confirm with waveform capnography' });
+
+    // Compressor swap
+    if (s.cycleStart != null || s.swaps.length) {
+      const lastSwap = last(s.swaps);
+      o.tasks.push({ id: 'swap', label: 'Compressor swap', status: cycleState === 'warn' || cycleState === 'due' ? 'soon' : 'later', note: lastSwap ? `every 2 min · last at ${clock(lastSwap - s.t0)}` : 'every 2 min, at the rhythm check' });
+    }
+
+    // Reversible causes
+    if (s.rhythm && (!shockable || s.cycleNo >= 2)) {
+      const reviewed = CAUSES.filter(c => s.causes[c.id] && s.causes[c.id] !== 'open').length;
+      o.tasks.push({ id: 'causes', label: 'Reversible causes (H’s & T’s)', status: reviewed === CAUSES.length ? 'done' : 'consider', note: `${reviewed}/${CAUSES.length} reviewed · POCUS only during checks` });
+    }
+
+    // Refractory VF strategies
+    if (shockable && s.shocks.length >= 3) {
+      o.tasks.push({ id: 'dsed', label: 'Refractory VF/pVT', status: 'consider', note: 'Check pad position. DSED or vector change: benefit not established (2025)' });
+    }
+
+    // ETCO2 interpretation
+    const ev = last(s.etco2), ep = s.etco2.length > 1 ? s.etco2[s.etco2.length - 2] : null;
+    if (ev && t - ev.t < 4 * MIN) {
+      if (ep && ev.v - ep.v >= 10 && ev.v >= 35) o.tasks.push({ id: 'etco2', label: `ETCO₂ jump ${ep.v} → ${ev.v}`, status: 'alert', note: 'possible ROSC: pulse check at next rhythm check' });
+      else if (ev.v < 10) o.tasks.push({ id: 'etco2', label: `ETCO₂ ${ev.v} mmHg`, status: 'alert', note: 'low: reassess depth, rate, recoil, leaning' });
+    }
+
+    // Pregnancy: resuscitative hysterotomy clock
+    if (s.special.pregnancy) {
+      const st = el < CFG.PMCD_ALERT ? 'later' : el <= CFG.PMCD_TARGET ? 'due' : 'overdue';
+      o.tasks.push({ id: 'pmcd', label: 'Resuscitative hysterotomy', status: st, note: st === 'later' ? `prepare now · decision at 4:00 (in ${fmt(CFG.PMCD_ALERT - el)})` : st === 'due' ? 'begin now if no ROSC · aim delivery by 5:00' : `past 5:00 target (${fmt(el)})` });
+      if (st !== 'later') say('pmcd', 'Four minutes. No return of circulation. Begin resuscitative hysterotomy.', 2);
+    }
+
+    // Thrombolysis for PE: prolonged CPR
+    if (s.lyticAt) {
+      const since = t - s.lyticAt;
+      o.tasks.push({ id: 'lytic', label: 'CPR after thrombolysis', status: since < CFG.LYTIC_CPR ? 'later' : 'done', note: `${fmt(since)} since lytic · continue 60–90 min before stopping` });
+    }
+
+    // ECPR candidacy
+    if (el >= CFG.ECPR_AT && s.roscs.length === 0) {
+      o.tasks.push({ id: 'ecpr', label: 'ECPR candidate?', status: 'consider', note: 'selected patients, system-dependent: decide early' });
+      say('ecpr', 'Ten minutes without return of circulation. Decide on E C P R candidacy.', 0);
+    }
+
+    // Continued resuscitation
+    if (el >= CFG.CONTINUE_AT) {
+      o.tasks.push({ id: 'continue', label: 'Continued resuscitation?', status: 'consider', note: 'team review · no single ETCO₂ cutoff decides' });
+      say('cont', 'Twenty minutes. Consider the appropriateness of continued resuscitation.', 0);
+    }
+
+    o.tasks.sort((x, y) => ORDER[x.status] - ORDER[y.status]);
+
+    // Headline when CPR is running (no check in progress)
+    if (!s.inCheck) {
+      const find = id => o.tasks.find(x => x.id === id);
+      const urgent = st => st === 'due' || st === 'overdue';
+      const ck = find('check'), pm = find('pmcd'), aa = find('aa'), ac = find('access');
+      const airwayTxt = s.airway ? '1 breath every 6 s' : '30:2';
+      const cprSub = `100–120/min · ≥5 cm · full recoil · ${airwayTxt}`;
+      if (s.cycleStart == null) {
+        o.headline = 'Compressions · bag-mask O₂ · pads on'; o.sub = 'Check rhythm as soon as pads are attached'; o.tone = 'act';
+      } else if (ck && urgent(ck.status)) {
+        o.headline = 'Rhythm check now'; o.sub = 'Hands off · pause under 10 s'; o.tone = 'crit';
+      } else if (cycleState === 'warn') {
+        o.headline = 'Pre-charge · next compressor ready'; o.sub = `Rhythm check in ${fmt(left)}`; o.tone = 'warn';
+      } else if (pm && urgent(pm.status)) {
+        o.headline = 'Begin resuscitative hysterotomy'; o.sub = 'Aim delivery by 5 min · keep uterine displacement'; o.tone = 'crit';
+      } else if (urgent(e.status)) {
+        o.headline = 'Give epinephrine 1 mg'; o.sub = e.note + (s.access ? '' : ' · needs IV/IO'); o.tone = 'act';
+      } else if (aa && urgent(aa.status)) {
+        o.headline = `Give ${aa.label.toLowerCase()}`; o.sub = aa.note; o.tone = 'act';
+      } else if (ac && urgent(ac.status)) {
+        o.headline = 'Get IV access'; o.sub = 'IO if IV not feasible or delayed'; o.tone = 'act';
+      } else {
+        o.headline = 'High‑quality CPR'; o.sub = cprSub; o.tone = 'calm';
+      }
+    }
+    return o;
+  }
+
+  /* ---------- summary & record ---------- */
+  function summarize(s, t) {
+    const end = s.endAt != null ? s.endAt : t;
+    if (s.t0 == null) return null;
+    const marks = [];
+    s.roscs.forEach(x => marks.push({ t: x, k: 'r' }));
+    s.rearrests.forEach(x => marks.push({ t: x, k: 'a' }));
+    marks.sort((a, b) => a.t - b.t);
+    let open = s.t0, arrestMs = 0;
+    marks.forEach(m => {
+      if (m.k === 'r' && open != null) { arrestMs += m.t - open; open = null; }
+      if (m.k === 'a' && open == null) open = m.t;
+    });
+    if (open != null) arrestMs += end - open;
+    const pd = s.pauses.map(p => p.end - p.start);
+    const pTotal = pd.reduce((a, b) => a + b, 0);
+    return {
+      totalMs: end - s.t0,
+      arrestMs,
+      firstRhythm: s.rhythms[0] ? RHYTHMS[s.rhythms[0].r].short : null,
+      shocks: s.shocks.length,
+      energies: s.shocks.map(x => x.J),
+      epi: s.epi.length,
+      tFirstShock: s.shocks[0] ? s.shocks[0].t - s.t0 : null,
+      tFirstEpi: s.epi[0] ? s.epi[0] - s.t0 : null,
+      aa: s.aa.map(x => x.text),
+      access: s.access ? { route: s.access.route, at: s.access.t - s.t0 } : null,
+      airway: s.airway ? { type: s.airway.type, at: s.airway.t - s.t0 } : null,
+      swaps: s.swaps.length,
+      pauses: { n: pd.length, total: pTotal, mean: pd.length ? pTotal / pd.length : 0, max: pd.length ? Math.max.apply(null, pd) : 0, over10: pd.filter(x => x > CFG.PAUSE_WARN).length },
+      ccf: arrestMs > 0 ? Math.max(0, 1 - pTotal / arrestMs) : null,
+      roscs: s.roscs.map(x => x - s.t0),
+      rearrests: s.rearrests.length,
+      outcome: s.phase === 'rosc' ? 'ROSC (ongoing)' : s.phase === 'ended' ? s.endReason : 'In progress',
+    };
+  }
+
+  /* ---------- local clock time (device time zone, Latin digits, 24 h) ---------- */
+  const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MONS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const p2 = n => String(n).padStart(2, '0');
+  function localTime(ms) { const d = new Date(ms); return `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`; }
+  function localDate(ms) { const d = new Date(ms); return `${DAYS[d.getDay()]} ${d.getDate()} ${MONS[d.getMonth()]} ${d.getFullYear()}`; }
+  function localDay(ms) { const d = new Date(ms); return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`; }
+  function tzLabel(ms) {
+    let name = '';
+    try { name = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { name = ''; }
+    const off = -new Date(ms == null ? Date.now() : ms).getTimezoneOffset(), a = Math.abs(off);
+    const utc = `UTC${off >= 0 ? '+' : '-'}${p2(Math.floor(a / 60))}:${p2(a % 60)}`;
+    return name && name !== 'UTC' ? `${name} (${utc})` : utc;
+  }
+  function elapsed(s, ms) {
+    if (s.t0 == null) return '';
+    return ms >= s.t0 ? '+' + clock(ms - s.t0) : '-' + clock(s.t0 - ms);
+  }
+
+  function recordText(s, t) {
+    const m = summarize(s, t);
+    const L = localTime;
+    const first = s.t0 != null ? s.t0 : (s.log[0] ? s.log[0].t : t);
+    const lines = [];
+    lines.push(`CARDIAC ARREST LOG · Adult ACLS (AHA 2025)${s.practice ? ' · PRACTICE RUN, simulated clock' : ''}`);
+    lines.push(`Date: ${localDate(first)} · Times are local: ${tzLabel(first)}`);
+    if (m) {
+      lines.push(`Code started ${L(s.t0)} · Duration ${clock(m.totalMs)} · Arrest time ${clock(m.arrestMs)}`);
+      const outcome = s.phase === 'rosc' ? `ROSC at ${L(last(s.roscs))} (ongoing)` : s.phase === 'ended' ? `${s.endReason} at ${L(s.endAt)}` : 'In progress';
+      lines.push(`Outcome: ${outcome}`);
+      if (s.roscs.length > 1 || s.rearrests.length) lines.push(`ROSC: ${s.roscs.map(L).join(', ') || '—'} · Re-arrest: ${s.rearrests.map(L).join(', ') || '—'}`);
+      lines.push(`First rhythm ${m.firstRhythm || '—'} · Shocks ${m.shocks}${m.energies.length ? ` (${m.energies.join(', ')} J)` : ''} · Epinephrine ${m.epi}`);
+      const at = ms => `${L(ms)} (${elapsed(s, ms)})`;
+      lines.push(`First shock ${s.shocks[0] ? at(s.shocks[0].t) : '—'} · First epinephrine ${s.epi[0] ? at(s.epi[0]) : '—'}`);
+      if (s.aa.length) lines.push(`Antiarrhythmic: ${s.aa.map(x => `${x.text} at ${L(x.t)}`).join('; ')}`);
+      lines.push(`Access ${s.access ? `${s.access.route} at ${L(s.access.t)}` : '—'} · Airway ${s.airway ? `${s.airway.type} at ${L(s.airway.t)}` : 'bag-mask'}`);
+      lines.push(`Rhythm-check pauses: ${m.pauses.n}, mean ${(m.pauses.mean / 1000).toFixed(1)} s, max ${(m.pauses.max / 1000).toFixed(1)} s, over 10 s: ${m.pauses.over10} · Estimated CCF ${m.ccf != null && m.pauses.n ? Math.round(m.ccf * 100) + '%' : '—'}`);
+    }
+    lines.push('');
+    lines.push('LOCAL TIME'.padEnd(12) + 'ELAPSED'.padEnd(10) + 'EVENT');
+    let day = null;
+    s.log.forEach(e => {
+      const d = localDay(e.t);
+      if (day && d !== day) lines.push(`— ${localDate(e.t)} —`);
+      day = d;
+      lines.push(L(e.t).padEnd(12) + elapsed(s, e.t).padEnd(10) + e.text);
+    });
+    lines.push('');
+    lines.push('Code Leader · myICUnotes.com by Dr Abhijeet Anand · myicunotes.substack.com');
+    return lines.join('\n');
+  }
+
+  // sep '\t' for pasting into a spreadsheet, ',' for a CSV file
+  function recordTable(s, sep) {
+    const cell = v => sep === ',' ? `"${String(v).replace(/"/g, '""')}"` : String(v).replace(/[\t\n]/g, ' ');
+    const rows = [['Date', 'Local time', 'Elapsed', 'Event']];
+    s.log.forEach(e => rows.push([localDay(e.t), localTime(e.t), s.t0 != null ? 'T' + elapsed(s, e.t) : '', e.text]));
+    return rows.map(r => r.map(cell).join(sep)).join(sep === ',' ? '\r\n' : '\n');
+  }
+
+  const API = { CFG, RHYTHMS, CAUSES, DEFAULTS, newState, act, advise, summarize, recordText, recordTable, localTime, localDate, localDay, tzLabel, elapsed, nextEnergy, aaPlan, isShockable, fmt, clock, MIN, SEC };
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  root.ACLS = API;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Code Leader voice commands: turns a speech-recognition transcript into one intent.
+   Pure functions, no DOM. Deliberately strict: completed-action call-outs only
+   ("adrenaline given"), never orders, questions, negations or future tense. */
+(function (root) {
+  'use strict';
+
+  const UNITS = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19 };
+  const TENS = { twenty: 20, thirty: 30, forty: 40, fourty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+
+  function words2num(s) {
+    const tk = s.split(' '), out = [];
+    for (let i = 0; i < tk.length; i++) {
+      const w = tk[i];
+      if (TENS[w] != null) {
+        let v = TENS[w];
+        if (UNITS[tk[i + 1]] != null && UNITS[tk[i + 1]] < 10 && UNITS[tk[i + 1]] > 0) { v += UNITS[tk[i + 1]]; i++; }
+        out.push(String(v));
+      } else if (UNITS[w] != null) {
+        if (tk[i + 1] === 'hundred') {
+          let v = UNITS[w] * 100; i++;
+          if (tk[i + 1] === 'and') i++;
+          if (TENS[tk[i + 1]] != null) { v += TENS[tk[i + 1]]; i++; if (UNITS[tk[i + 1]] != null && UNITS[tk[i + 1]] < 10) { v += UNITS[tk[i + 1]]; i++; } }
+          else if (UNITS[tk[i + 1]] != null) { v += UNITS[tk[i + 1]]; i++; }
+          out.push(String(v));
+        } else out.push(String(UNITS[w]));
+      } else out.push(w);
+    }
+    return out.join(' ');
+  }
+
+  const MAP = [
+    [/\b(et ?co ?2|e t c o 2|e t c o two|etco two|et co two|etco)\b/g, ' etcotwo '],
+    [/\b(c ?o ?2|c o two|co two|carbon dioxide)\b/g, ' cotwo '],
+    [/\bend[ -]*tidal\b/g, ' endtidal '],
+    [/\b(adrenaline|adrenalin|adrenalines|epinephrine|epinephrin|epi nephrine|epinephrines|eppy|epy)\b/g, ' epi '],
+    [/\b(amiodarone|amiodaron|amyodarone|amio|ammio|ameo|amyo)\b/g, ' amio '],
+    [/\b(lidocaine|lignocaine|lidocain|xylocaine|lido)\b/g, ' lido '],
+    [/\b(pulseless v ?t|pulseless ventricular tachycardia|ventricular tachycardia|v ?tach|vee ?tach|vtach|pvt|p v t|v t|vt)\b/g, ' vt '],
+    [/\b(ventricular fibrillation|ventricular fib|fibrillating|fibrillation|v ?fib|vee ?fib|vfib|v f|vf)\b/g, ' vf '],
+    [/\b(pulseless electrical activity|pulseless electrical|p e a|pea)\b/g, ' pea '],
+    [/\b(asystole|asystolic|a systole|flat ?line|flatline|flat lining)\b/g, ' asystole '],
+    [/\b(endotracheal tube|endotracheal|e t tube|et tube|e t t|ett)\b/g, ' ett '],
+    [/\b(supraglottic airway|supraglottic|laryngeal mask|i ?gel|igel|l m a|lma|s g a|sga)\b/g, ' sga '],
+    [/\b(intraosseous|intra osseous|i o|io)\b/g, ' io '],
+    [/\b(i v|iv)\b/g, ' iv '],
+    [/\b(r o s c|rosc|ross|rusk)\b/g, ' rosc '],
+  ];
+  const DOSE = /\b\d+(?:\.\d+)?\s*(?:mg|milligrams?|milli grams?|mcg|micrograms?|grams?|g|ml|mls|mils?|units?|joules?|j)\b/g;
+  const LEAD = /^(?:(?:ok|okay|alright|all right|right|so|and|yes|yeah|yep|please|hey|hi|code leader|leader|team|guys)\s+)+/;
+  const TRAIL = /(?:\s+(?:please|thank you|thanks|guys|team|everyone|everybody|okay|ok))+$/;
+
+  function normalize(raw) {
+    let s = ' ' + String(raw || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/-/g, ' ').replace(/[^a-z0-9' ]+/g, ' ') + ' ';
+    s = s.replace(/n't\b/g, ' not').replace(/'ve\b/g, ' have').replace(/'re\b/g, ' are').replace(/'ll\b/g, ' will').replace(/'d\b/g, ' would').replace(/'s\b/g, ' is').replace(/'/g, '');
+    s = s.replace(/\s+/g, ' ');
+    for (const [re, rep] of MAP) s = s.replace(re, rep);
+    s = words2num(s.replace(/\s+/g, ' ').trim());
+    s = s.replace(DOSE, ' ').replace(/\bof\b/g, ' ').replace(/\s+/g, ' ').trim();
+    let prev;
+    do { prev = s; s = s.replace(LEAD, '').replace(TRAIL, '').trim(); } while (s !== prev);
+    return s;
+  }
+
+  const QUESTION = /^(has|have|had|was|were|is|are|did|do|does|should|shall|can|could|would|will|when|what|why|who|how|which|anyone|anybody|any|ready|need|needs|lets|let us|going to|gonna|tell me|where)\b/;
+  const NEG = /\b(not|no|never|yet|due|need|needs|needed|draw|drawing|drawn|ready|prepare|preparing|prep|get|getting|give|giving|going|gonna|next|should|want|wants|charge|charging|hold|holding|wait|waiting|later|soon|maybe|might|plan|planning|consider|considering|about to)\b/;
+  const FUTURE = /\b(in \d+|in a (minute|min|sec|second|moment|bit)|in the next|at \d+|\d+ seconds?|\d+ minutes?)\b/;
+  const DONE = '(?:given|gave|pushed|done|administered|on board|gone in|went in|injected|delivered|completed)';
+
+  function drugGiven(s, tok) {
+    const a = new RegExp(`\\b${tok}\\b(?: \\w+){0,3}? ${DONE}\\b`);
+    const b = new RegExp(`\\b(?:gave|given|pushed|administered|injected)\\b(?: \\w+){0,3}? ${tok}\\b`);
+    const c = new RegExp(`\\b${tok} (?:is |has |has gone |gone |went |now )?in(?: now)?$`);
+    return a.test(s) || b.test(s) || c.test(s);
+  }
+
+  function parse(raw) {
+    const s = normalize(raw);
+    if (!s) return { type: null, reason: 'empty', norm: s };
+    const out = (type, extra) => Object.assign({ type, norm: s }, extra || {});
+    const words = s.split(' ').length;
+
+    if (/\b(stop listening|voice off|stop voice|mic off|microphone off|stop the microphone)\b/.test(s)) return out('stop');
+    if (/^(undo|undo (that|it|last|last one|last entry|the last one)|cancel (that|it|last|the last one)|scratch that|delete (that|last|last entry|the last entry)|remove (that|last|the last entry)|wrong entry|that was wrong|mistake)$/.test(s)) return out('undo');
+    if (/\b(status|summary|recap|update me|give me an update|where are we|what is next|whats next|how long|time check)\b/.test(s)) return out('status');
+    const note = /^(?:add )?(?:a )?note\b\s*(.*)$/.exec(s);
+    if (note) {
+      const rawRest = String(raw).replace(/^.*?\bnote\b[\s:,.-]*/i, '').trim();
+      return rawRest.length >= 2 ? out('note', { text: rawRest.charAt(0).toUpperCase() + rawRest.slice(1) }) : { type: null, reason: 'empty note', norm: s };
+    }
+    if (/\b(start (the )?code|start (the )?(arrest )?clock|begin (the )?code)\b/.test(s) && !NEG.test(s)) return out('start');
+    if (QUESTION.test(s)) return { type: null, reason: 'question', norm: s };
+
+    const neg = NEG.test(s) || FUTURE.test(s);
+
+    // ETCO2 value
+    const co = /\b(?:endtidal|etcotwo|cotwo|capno\w*)\b\D{0,24}?\b(\d{1,3})\b/.exec(s);
+    if (co) {
+      const v = +co[1];
+      return v >= 0 && v <= 120 ? out('etco2', { value: v }) : { type: null, reason: 'etco2 out of range', norm: s };
+    }
+
+    // drugs
+    if (/\bepi\b/.test(s) && drugGiven(s, 'epi')) return neg ? { type: null, reason: 'negated', norm: s } : out('epi');
+    for (const d of ['amio', 'lido']) {
+      if (new RegExp(`\\b${d}\\b`).test(s) && drugGiven(s, d)) return neg ? { type: null, reason: 'negated', norm: s } : out('aa', { drug: d });
+    }
+
+    // shocks
+    if (/\b(no shock|shock (not|cancelled|canceled|aborted|abort)|not shocking|do not shock|dont shock)\b/.test(s)) return out('noshock');
+    if (/\b(shock (was |has been |is )?(delivered|given|done|gone|administered|complete|completed)|shocked|delivered (the |a )?shock|shock in$)\b/.test(s)) {
+      return neg ? { type: null, reason: 'negated', norm: s } : out('shock');
+    }
+
+    // ROSC / pulse
+    const noPulse = /\b(no pulse|pulseless|no output|lost (the )?pulse|cannot feel (a )?pulse|can not feel (a )?pulse|no palpable pulse)\b/.test(s);
+    const rosc = !noPulse && /\b(rosc|we have (a )?pulse|we have got (a )?pulse|got (a )?pulse|pulse (is )?(present|back|palpable)|there is a pulse|strong pulse|good pulse|pulse positive)\b/.test(s);
+    if (rosc) return /\b(not|lost|losing|weak|thready|maybe|possible|possibly|might|check|checking|feel for)\b/.test(s) ? { type: null, reason: 'uncertain pulse', norm: s } : out('rosc');
+
+    // rhythm identification (short utterances only)
+    const r = {
+      VF: /\bvf\b/.test(s), PVT: /\bvt\b/.test(s), PEA: /\bpea\b/.test(s), ASY: /\basystole\b/.test(s),
+      ORG: /\b(organi[sz]ed( rhythm| activity)?|sinus( rhythm)?|narrow complex( rhythm)?|perfusing rhythm)\b/.test(s),
+    };
+    let hits = Object.keys(r).filter(k => r[k]);
+    if (hits.includes('ORG') && noPulse) hits = ['PEA'];
+    if (hits.length && words <= 8) {
+      if (/\b(not|no|or|maybe|possible|possibly|might|looks like|query|unsure)\b/.test(s.replace(/\bno pulse\b/, ''))) return { type: null, reason: 'uncertain rhythm', norm: s };
+      if (hits.length === 1) return out('rhythm', { rhythm: hits[0] });
+      return { type: null, reason: 'ambiguous rhythm', norm: s };
+    }
+    if (noPulse && words <= 6) return out('nopulse');
+
+    // CPR flow
+    if (/\b((resume|resuming|resumed|continue|continuing|restart|restarting) (cpr|compressions|chest compressions)|(cpr|compressions) (resumed|restarted|continued)|back on (the )?chest)\b/.test(s)) return out('resume');
+    if (/\b(rhythm check|pulse check|check (the )?rhythm|checking (the )?rhythm|hands off( the chest)?|stop compressions|stop cpr|pause compressions|pause cpr|stop chest compressions)\b/.test(s)) {
+      return /\b(\d+|coming|next|soon|ready|prepare|preparing|approaching|after|almost)\b/.test(s) ? { type: null, reason: 'not now', norm: s } : out('check');
+    }
+
+    // access, airway, swap
+    if (/\b(iv|io)\b/.test(s) && !/\b(fluid|fluids|bolus|drip|infusion|antibiotic|antibiotics|drug|drugs|medication|saline|blood)\b/.test(s)) {
+      if (/\b(iv|io)\b(?: \w+){0,2}? (in|access|established|secured|placed|sited|inserted)\b/.test(s) || /\b(have|got) (an |a )?(iv|io)\b/.test(s) || /\b(iv|io) (is )?in$/.test(s)) {
+        return neg ? { type: null, reason: 'negated', norm: s } : out('access', { route: /\bio\b/.test(s) ? 'IO' : 'IV' });
+      }
+    }
+    if (/\b(intubated|tubed|(tube|ett) (is |has been )?(in|placed|confirmed|secured|passed))\b/.test(s)) return neg ? { type: null, reason: 'negated', norm: s } : out('airway', { kind: 'ETT' });
+    if (/\bsga (is |has been )?(in|placed|inserted|secured)\b/.test(s)) return neg ? { type: null, reason: 'negated', norm: s } : out('airway', { kind: 'SGA' });
+    if (/^(swap|switch|swap over|switch over|change over|changeover|swapping|switching)$/.test(s) ||
+        /\b((swap|switch|change|changing|switching|swapping) (the )?(compressors?|compression|cpr|over|out)|new compressor|compressors? (swap|swapped|change|changed|switch|switched))\b/.test(s)) {
+      return neg ? { type: null, reason: 'negated', norm: s } : out('swap');
+    }
+    return { type: null, reason: 'no command', norm: s };
+  }
+
+  // words shared between a heard phrase and something the app said recently
+  function echoScore(heard, spoken) {
+    const a = normalize(heard).split(' ').filter(Boolean);
+    const b = new Set(normalize(spoken).split(' ').filter(Boolean));
+    if (!a.length) return 0;
+    return a.filter(w => b.has(w)).length / a.length;
+  }
+
+  // Everything the app says back in voice mode. Tested so none of it parses as a command.
+  const REPLIES = {
+    listening: 'Listening for call-outs.',
+    voiceOff: 'Voice commands off.',
+    undone: 'Last entry removed.',
+    nothingToUndo: 'Nothing to undo.',
+    noteAdded: 'Note added.',
+    epiLogged: 'Epinephrine logged.',
+    epiRecent: n => `Epinephrine was logged ${n} seconds ago. Tap the screen to log another dose.`,
+    aaLogged: (name, dose) => `${name} ${dose} logged.`,
+    aaRecent: 'The antiarrhythmic was logged less than a minute ago. Tap the screen to log another dose.',
+    aaNotIndicated: 'Not logged. The antiarrhythmic is only for shock-refractory VF or pulseless VT.',
+    aaOther: name => `The antiarrhythmic was started as ${name}.`,
+    aaDone: 'Both antiarrhythmic doses are already logged.',
+    accessLogged: 'Access logged.',
+    swapLogged: 'Swap logged.',
+    nameRhythm: 'Name the rhythm first.',
+    shockNoRhythm: 'Name the rhythm before the shock.',
+    shockPending: 'A shock is pending. Confirm it on the screen.',
+    pulsePending: 'Confirm the pulse on the screen.',
+    confirmRosc: 'Please confirm return of circulation on the screen.',
+    confirmScreen: 'Please confirm on the screen.',
+    rhythmSet: long => `Rhythm already recorded as ${long}. Say undo to change it.`,
+  };
+
+  const API = { parse, normalize, echoScore, words2num, REPLIES };
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  root.VoiceCmd = API;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  const A = window.ACLS;
+  const $ = id => document.getElementById(id);
+  const qsa = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const LS_STATE = 'codeleader.state.v1', LS_SET = 'codeleader.settings.v1';
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } },
+    del(k) { try { localStorage.removeItem(k); } catch (e) { /* storage unavailable */ } },
+  };
+
+  let settings = Object.assign({}, A.DEFAULTS, { theme: 'auto', big: false, srLang: 'en-GB' }, store.get(LS_SET) || {});
+  const PWA = { swOK: false, reg: null, deferred: null, updateReady: false, wantReload: false };
+  const VC = window.VoiceCmd, R = VC.REPLIES;
+  const hostTheme = document.documentElement.getAttribute('data-theme');
+  let themeApplied = 'auto';
+  function applyTheme() {
+    if (themeApplied === settings.theme) return;
+    const r = document.documentElement;
+    if (settings.theme === 'light' || settings.theme === 'dark') r.setAttribute('data-theme', settings.theme);
+    else if (hostTheme) r.setAttribute('data-theme', hostTheme);
+    else r.removeAttribute('data-theme');
+    themeApplied = settings.theme;
+  }
+  let armed = null;
+  let S = A.newState();
+  let undoStack = [];
+  let tab = 'arrest';
+  let saved = store.get(LS_STATE);
+
+  /* ---------- clock (scaled for practice runs) ---------- */
+  const Clock = {
+    base: Date.now(), sim: Date.now(), speed: 1,
+    now() { return this.sim + (Date.now() - this.base) * this.speed; },
+    setSpeed(x) { this.sim = this.now(); this.base = Date.now(); this.speed = x; },
+    reset() { this.base = Date.now(); this.sim = Date.now(); this.speed = 1; },
+    resumeAt(offset) { this.base = Date.now(); this.sim = Date.now() + (offset || 0); this.speed = 1; },
+  };
+  // local clock time with Latin digits, whatever the device locale
+  const wall = (t, withDate) => withDate ? `${A.localDate(t)} ${A.localTime(t)}` : A.localTime(t);
+
+  /* ---------- voice ---------- */
+  const Voice = {
+    ok: typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined',
+    voice: null,
+    pick() {
+      if (!this.ok) return;
+      const vs = speechSynthesis.getVoices() || [];
+      this.voice = vs.find(v => /^en[-_](GB|US|IN|AU|IE)/i.test(v.lang) && /natural|google|samantha|daniel|serena|karen|moira|aria|libby/i.test(v.name))
+        || vs.find(v => /^en/i.test(v.lang)) || null;
+    },
+    quietUntil: 0, recent: [],
+    say(text, prio) {
+      caption(text, 'said');
+      if (!settings.voice || !this.ok) return;
+      try {
+        if ((prio || 0) >= 2) speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = settings.voiceRate || 1.05;
+        if (this.voice) { u.voice = this.voice; u.lang = this.voice.lang; } else u.lang = 'en-GB';
+        // while the app is talking, and briefly after, the microphone hears the app: ignore it
+        const now = Date.now();
+        this.recent = this.recent.filter(x => now - x.t < 15000).concat({ text, t: now });
+        this.quietUntil = Math.max(this.quietUntil, now + 1500 + text.length * 80 / (u.rate || 1));
+        u.onend = () => { this.quietUntil = Math.max(Date.now() + 1500, this.quietUntil - 4000); };
+        speechSynthesis.speak(u);
+      } catch (e) { /* speech unavailable */ }
+    },
+    isEcho(heard) {
+      const now = Date.now();
+      // trust the "speaking" flag only shortly after our own prompt, in case a browser leaves it stuck
+      try { if (this.ok && speechSynthesis.speaking && this.recent.length && now - this.recent[this.recent.length - 1].t < 20000) return true; } catch (e) { /* ignore */ }
+      if (now < this.quietUntil) return true;
+      return this.recent.some(x => now - x.t < 12000 && VC.echoScore(heard, x.text) >= 0.6);
+    },
+  };
+  if (Voice.ok) { Voice.pick(); try { speechSynthesis.onvoiceschanged = () => Voice.pick(); } catch (e) { /* ignore */ } }
+
+  let capTimer = null;
+  function caption(text, kind) {
+    $('captionText').textContent = text;
+    $('caption').dataset.kind = kind || 'said';
+    $('caption').classList.remove('is-old');
+    clearTimeout(capTimer);
+    capTimer = setTimeout(() => { $('caption').classList.add('is-old'); }, 7000);
+  }
+
+  /* ---------- metronome (Web Audio, lookahead scheduler) ---------- */
+  const Metro = {
+    ctx: null, on: false, timer: null, next: 0, count: 0, lastBreath: 0,
+    ensure() {
+      try {
+        if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false; this.ctx = new AC(); }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        return true;
+      } catch (e) { return false; }
+    },
+    blip(time, freq, dur, vol) {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, time);
+      g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      o.connect(g); g.connect(this.ctx.destination);
+      o.start(time); o.stop(time + dur + 0.02);
+    },
+    start() {
+      if (!this.ensure()) return false;
+      this.on = true; this.count = 0;
+      this.next = this.ctx.currentTime + 0.1; this.lastBreath = this.ctx.currentTime;
+      clearInterval(this.timer); this.timer = setInterval(() => this.tick(), 25);
+      return true;
+    },
+    stop() { this.on = false; clearInterval(this.timer); },
+    tick() {
+      if (!this.on || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      if (S.phase !== 'arrest' || S.inCheck) { this.next = now + 0.15; this.count = 0; this.lastBreath = now; return; }
+      const iv = 60 / (settings.bpm || 110);
+      while (this.next < now + 0.12) {
+        if (S.airway) {
+          this.blip(this.next, 1100, 0.03, 0.22);
+          if (this.next - this.lastBreath >= 6) { this.blip(this.next + iv / 2, 520, 0.2, 0.16); this.lastBreath = this.next; }
+          this.next += iv;
+        } else {
+          this.count += 1;
+          this.blip(this.next, this.count % 10 === 0 ? 1320 : 1100, 0.03, 0.22);
+          if (this.count >= 30) {
+            const b1 = this.next + iv + 0.2, b2 = b1 + 1.4;
+            this.blip(b1, 520, 0.25, 0.18); this.blip(b2, 520, 0.25, 0.18);
+            this.next = b2 + 1.6; this.count = 0;
+          } else this.next += iv;
+        }
+      }
+    },
+  };
+
+  /* ---------- wake lock ---------- */
+  let wake = null;
+  async function keepAwake() {
+    try {
+      if ('wakeLock' in navigator && !wake && document.visibilityState === 'visible') {
+        wake = await navigator.wakeLock.request('screen');
+        wake.addEventListener('release', () => { wake = null; });
+      }
+    } catch (e) { wake = null; }
+  }
+  document.addEventListener('visibilitychange', () => { if (S.phase === 'arrest' || S.phase === 'rosc') keepAwake(); });
+
+  /* ---------- persistence & actions ---------- */
+  function persist() { store.set(LS_STATE, { S, offset: Clock.now() - Date.now() }); }
+  function saveSettings() { store.set(LS_SET, settings); }
+
+  function run(fn, toastText, via) {
+    undoStack.push(JSON.stringify(S));
+    if (undoStack.length > 40) undoStack.shift();
+    armed = null;
+    const before = S.log.length;
+    const r = fn(Clock.now()) || {};
+    if (via === 'voice') for (let i = before; i < S.log.length; i++) { S.log[i].text += ' · by voice'; S.log[i].via = 'voice'; }
+    persist();
+    try { navigator.vibrate && navigator.vibrate(25); } catch (e) { /* ignore */ }
+    if (r.say) Voice.say(r.say, 2);
+    if (toastText !== false) {
+      const lastEv = S.log[S.log.length - 1];
+      toast(toastText || (lastEv ? lastEv.text : 'Logged'), true);
+    }
+    renderAll();
+    return r;
+  }
+  function undo() {
+    const prev = undoStack.pop();
+    if (!prev) return;
+    S = JSON.parse(prev);
+    persist();
+    toast('Last action undone', false);
+    renderAll();
+  }
+
+  let toastTimer = null;
+  function toast(text, canUndo) {
+    $('toastText').textContent = text;
+    $('toastUndo').hidden = !canUndo;
+    $('toast').hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { $('toast').hidden = true; }, canUndo ? 4500 : 2500);
+  }
+
+  /* ---------- sheets ---------- */
+  function openSheet(id) {
+    qsa('.sheet').forEach(s => { s.hidden = s.id !== id; });
+    $('scrim').hidden = false;
+    const f = $(id).querySelector('button, input');
+    if (f && id !== 'sh-check') setTimeout(() => f.focus(), 30);
+  }
+  function closeSheets() { qsa('.sheet').forEach(s => { s.hidden = true; }); $('scrim').hidden = true; }
+  $('scrim').addEventListener('click', e => { if (e.target === $('scrim') && $('sh-check').hidden) closeSheets(); });
+  qsa('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('sh-check').hidden) closeSheets(); });
+
+  /* ---------- tabs ---------- */
+  function setTab(name) {
+    tab = name;
+    qsa('.tab-btn').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    ['arrest', 'causes', 'special', 'peri', 'rosc', 'record'].forEach(n => { $('tab-' + n).hidden = n !== name; });
+    renderAll();
+    window.scrollTo({ top: 0 });
+  }
+  qsa('.tab-btn').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+
+  /* ---------- settings binding ---------- */
+  function syncSettings() {
+    qsa('[data-setting]').forEach(el => {
+      const v = settings[el.dataset.setting];
+      if (el.type === 'checkbox') el.checked = !!v;
+      else if (document.activeElement !== el) el.value = v;
+    });
+    qsa('[data-seg]').forEach(seg => qsa('button[data-v]', seg).forEach(b => b.setAttribute('aria-pressed', String(String(settings[seg.dataset.seg]) === b.dataset.v))));
+    $('rateV').textContent = '×' + Number(settings.voiceRate).toFixed(2);
+    $('bpmV').textContent = settings.bpm;
+    $('btnVoice').setAttribute('aria-pressed', String(!!settings.voice));
+    qsa('#btnVoice .vw').forEach(p => { p.style.opacity = settings.voice ? 1 : 0; });
+    $('spW').textContent = settings.weightKg;
+    const aaName = settings.aaDrug === 'lido' ? 'Lidocaine' : 'Amiodarone';
+    $('cfgText').textContent = `${settings.weightKg} kg · ${aaName} · first shock ${settings.energyFirst} J${settings.energyEscalate ? ` → ${settings.energyMax} J` : ''}`;
+    document.body.classList.toggle('big', !!settings.big);
+    $('kBig').setAttribute('aria-pressed', String(!!settings.big));
+    applyTheme();
+  }
+  qsa('[data-setting]').forEach(el => {
+    const k = el.dataset.setting;
+    el.addEventListener('change', () => {
+      let v = el.type === 'checkbox' ? el.checked : (el.type === 'number' || el.type === 'range') ? parseFloat(el.value) : el.value;
+      if (k === 'weightKg' && !(v >= 20 && v <= 250)) { syncSettings(); toast('Weight must be 20–250 kg', false); return; }
+      settings[k] = v; saveSettings(); syncSettings(); renderAll();
+    });
+    if (el.type === 'range') el.addEventListener('input', () => { settings[k] = parseFloat(el.value); syncSettings(); });
+  });
+  qsa('[data-seg]').forEach(seg => seg.addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]'); if (!b) return;
+    const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v;
+    settings[seg.dataset.seg] = v; saveSettings(); syncSettings(); renderAll();
+    if (seg.dataset.seg === 'srLang' && typeof Listen !== 'undefined' && Listen.on) Listen.restart();
+  }));
+
+  /* ---------- roles ---------- */
+  const ROLES = ['Leader', 'Compressor A', 'Compressor B', 'Airway', 'Defib / monitor', 'Meds / access', 'Recorder'];
+  $('roles').innerHTML = ROLES.map((r, i) => `<div class="field"><label for="role${i}">${esc(r)}</label><input type="text" id="role${i}" data-role="${esc(r)}" autocomplete="off" placeholder="name"></div>`).join('');
+  qsa('[data-role]').forEach(el => el.addEventListener('input', () => { S.roles = S.roles || {}; S.roles[el.dataset.role] = el.value; persist(); }));
+  function syncRoles() { qsa('[data-role]').forEach(el => { if (document.activeElement !== el) el.value = (S.roles && S.roles[el.dataset.role]) || ''; }); }
+
+  /* ---------- content data ---------- */
+  const dose = s => `<span class="dose">${s}</span>`;
+  const SPECIALS = [
+    { id: 'pregnancy', name: 'Pregnancy', when: 'Fundus at or above the umbilicus (about ≥20 weeks)',
+      body: () => [
+        'Continuous manual left uterine displacement throughout CPR',
+        'IV/IO access above the diaphragm',
+        'Most experienced airway operator; expect a difficult airway and fast desaturation',
+        'Standard ACLS drugs and shock energies; disregard fetal monitoring during the arrest',
+        `Magnesium infusion running? Stop it and give ${dose('calcium chloride 10% 10 mL (1 g)')}`,
+        'Resuscitative hysterotomy: prepare at arrest onset. If no ROSC, aim for delivery about 5 min after arrest. The Arrest tab runs this clock',
+        'Call obstetric, neonatal and anaesthesia teams',
+      ],
+      actions: [{ label: 'Hysterotomy started', text: 'Resuscitative hysterotomy started' }, { label: 'Delivery', text: 'Delivery of fetus' }, { label: 'Calcium given', text: 'Calcium chloride 10% 10 mL IV (magnesium reversal)' }] },
+    { id: 'opioid', name: 'Opioid overdose', when: 'Suspected or known opioid toxicity',
+      body: () => [
+        'Start CPR without delay; ventilation is a priority',
+        `Naloxone may be given but must not delay CPR or ventilation: ${dose('0.4–2 mg IV/IO')} or ${dose('4 mg intranasal')}`,
+        'After ROSC watch for re-sedation; naloxone wears off before many opioids',
+      ],
+      actions: [{ label: 'Naloxone given', text: 'Naloxone given', cls: 'act-opioid' }] },
+    { id: 'hyperk', name: 'Hyperkalaemia', when: 'Dialysis, renal failure, rhabdomyolysis, peaked T waves before arrest',
+      body: () => [
+        `${dose('Calcium chloride 10% 10 mL')} IV, or calcium gluconate 10% 30 mL`,
+        `${dose('Insulin regular 10 units + glucose 25 g')} (50 mL of 50%) IV; recheck glucose`,
+        `${dose('Sodium bicarbonate 50 mmol')} IV if severe acidosis`,
+        'Urgent dialysis; consider ECPR',
+        'Evidence for calcium and bicarbonate during arrest is limited (ILCOR 2025); use them when hyperkalaemia is likely',
+      ],
+      actions: [{ label: 'Calcium', text: 'Calcium chloride 10% 10 mL IV (hyperkalaemia)' }, { label: 'Insulin–glucose', text: 'Insulin 10 units + glucose 25 g IV' }, { label: 'Bicarbonate', text: 'Sodium bicarbonate 50 mmol IV' }] },
+    { id: 'pe', name: 'Massive pulmonary embolism', when: 'PE suspected or confirmed as the cause',
+      body: () => [
+        'Thrombolysis may be considered when PE is the suspected cause',
+        'After a lytic, continue CPR for 60–90 min before stopping. The Arrest tab tracks the time',
+        'Surgical or catheter embolectomy, or ECPR, where available',
+      ],
+      actions: [{ id: 'pe-lytic', label: 'Thrombolytic given', text: 'Thrombolytic given for suspected PE' }] },
+    { id: 'last', name: 'Local anaesthetic toxicity', when: 'Arrest during or after regional or local anaesthesia', src: 'Lipid dosing per the ASRA LAST checklist',
+      body: w => {
+        const bolus = w >= 70 ? 100 : Math.round(1.5 * w);
+        const inf = w >= 70 ? '200–250 mL over 15–20 min' : `about ${Math.round(0.25 * w)} mL/min (0.25 mL/kg/min)`;
+        return [
+          'Stop the local anaesthetic; call for lipid emulsion',
+          `${dose(`Lipid emulsion 20% ${bolus} mL`)} IV over 2–3 min, then ${dose(inf)}; repeat the bolus once or twice if still unstable`,
+          `Smaller epinephrine doses: ${dose(`≤1 mcg/kg (≤${Math.round(w)} mcg)`)}`,
+          'Avoid vasopressin, calcium-channel blockers, beta-blockers and more local anaesthetic',
+          'Expect prolonged CPR; ECPR if available',
+        ];
+      },
+      actions: [{ label: 'Lipid bolus given', text: 'Lipid emulsion 20% bolus', cls: 'act-la' }] },
+    { id: 'bbccb', name: 'Beta-blocker or CCB toxicity', when: 'Overdose with bradycardia and shock before arrest',
+      body: w => [
+        'IV calcium',
+        `High-dose insulin: ${dose(`1 unit/kg bolus (${Math.round(w)} units)`)} with glucose, then infusion`,
+        'Glucagon for beta-blocker toxicity',
+        'VA-ECMO for refractory shock or arrest; involve toxicology early',
+      ],
+      actions: [{ label: 'Calcium', text: 'Calcium given (CCB/beta-blocker toxicity)' }, { label: 'High-dose insulin', text: 'High-dose insulin bolus' }, { label: 'Glucagon', text: 'Glucagon given' }] },
+    { id: 'nachan', name: 'Sodium-channel blocker toxicity', when: 'Tricyclics, cocaine, other wide-QRS poisoning',
+      body: w => [
+        `${dose(`Sodium bicarbonate 1–2 mmol/kg (${Math.round(w)}–${Math.round(2 * w)} mmol)`)} IV bolus; repeat to narrow the QRS`,
+        'Treat seizures; avoid class IA and IC antiarrhythmics',
+      ],
+      actions: [{ label: 'Bicarbonate', text: 'Sodium bicarbonate bolus (Na-channel blocker toxicity)' }] },
+    { id: 'anaph', name: 'Anaphylaxis', when: 'Allergen exposure, angio-oedema, bronchospasm before arrest',
+      body: () => [
+        'Standard ACLS with epinephrine',
+        'Large-volume crystalloid; vasodilatory shock needs litres',
+        'Early advanced airway by the most experienced operator: oedema worsens quickly',
+        'Consider ECPR',
+      ],
+      actions: [{ label: 'Fluid bolus', text: 'Crystalloid bolus (anaphylaxis)' }] },
+    { id: 'hypothermia', name: 'Accidental hypothermia', when: 'Low core temperature, immersion or exposure',
+      body: () => [
+        'Measure core temperature (oesophageal); handle gently',
+        'Active internal rewarming; ECPR is the preferred rewarming route in arrest',
+        'AHA: give drugs and shocks per the standard algorithm while rewarming. Some protocols (ERC) withhold epinephrine below 30 °C and limit shocks to three',
+        'Do not stop until rewarmed unless injuries are clearly unsurvivable',
+      ],
+      actions: [{ label: 'Rewarming started', text: 'Active rewarming started' }] },
+    { id: 'asthma', name: 'Severe asthma', when: 'Dynamic hyperinflation, very high airway pressures',
+      body: () => [
+        'Low respiratory rate and small tidal volumes with a long expiratory time',
+        'Disconnect the ventilator and compress the chest to release trapped gas',
+        'Suspect tension pneumothorax; decompress both sides if suspected',
+      ],
+      actions: [{ label: 'Circuit disconnected', text: 'Ventilator disconnected to release trapped gas' }] },
+  ];
+
+  const ROSC_GROUPS = [
+    { g: 'Airway and breathing', items: [
+      ['airway', 'Secure the airway', 'Early endotracheal tube if not placed; confirm with waveform capnography'],
+      ['vent', 'Ventilation', 'Start at 10 breaths/min; titrate to PaCO₂ 35–45 mmHg'],
+      ['oxy', 'Oxygenation', 'Titrate FiO₂ to SpO₂ 90–98%; avoid hypoxaemia'],
+    ] },
+    { g: 'Circulation', items: [
+      ['map', 'Blood pressure', 'MAP ≥65 mmHg: fluids, vasopressor or inotrope; mechanical support if refractory'],
+      ['ecg', '12-lead ECG', 'As soon as possible after ROSC'],
+      ['labs', 'Bloods and lines', 'ABG, lactate, K⁺, glucose; arterial line'],
+    ] },
+    { g: 'Cause', items: [
+      ['cath', 'Emergent coronary angiography', 'STEMI, cardiogenic shock, electrical instability or need for mechanical support'],
+      ['ct', 'Head-to-pelvis CT', 'Reasonable to look for the cause and for CPR injuries'],
+      ['hts', 'Reversible causes', 'Keep working the H’s and T’s'],
+    ] },
+    { g: 'Brain', items: [
+      ['cmd', 'Follows commands?', 'If not: deliberate temperature control 32–37.5 °C for at least 36 h'],
+      ['fever', 'Fever prevention', 'Actively prevent fever above 37.5 °C; continuous core temperature'],
+      ['eeg', 'EEG and seizures', 'Treat clinical seizures; no seizure prophylaxis'],
+      ['prog', 'Neuroprognostication', 'Multimodal, no sooner than 72 h after return to normothermia'],
+    ] },
+    { g: 'Disposition', items: [
+      ['icu', 'ICU or cath lab handover', 'Hand over with the code record (Record tab, Copy record)'],
+    ] },
+  ];
+
+  /* ---------- static renders (rebuilt on change) ---------- */
+  function renderCauses() {
+    $('causeList').innerHTML = A.CAUSES.map(c => {
+      const st = S.causes[c.id] || 'open';
+      return `<div class="cause" data-st="${st}"><div class="cause-top"><h3>${esc(c.name)}</h3><div class="tri" role="group" aria-label="${esc(c.name)} status">`
+        + ['ruled', 'treat'].map(v => `<button data-c="${c.id}" data-v="${v}" aria-pressed="${st === v}">${v === 'ruled' ? 'Considered' : 'Treating'}</button>`).join('')
+        + `</div></div><dl><dt>Clues</dt><dd>${c.cue}</dd><dt>Act</dt><dd>${c.act}</dd>${c.pocus ? `<dt>POCUS</dt><dd>${c.pocus}</dd>` : ''}</dl></div>`;
+    }).join('');
+  }
+  $('causeList').addEventListener('click', e => {
+    const b = e.target.closest('button[data-c]'); if (!b) return;
+    const cur = S.causes[b.dataset.c] || 'open';
+    const next = cur === b.dataset.v ? 'open' : b.dataset.v;
+    run(t => A.act.cause(S, t, b.dataset.c, next));
+  });
+
+  function renderSpecial() {
+    const w = settings.weightKg;
+    $('specialList').innerHTML = SPECIALS.map(sp => {
+      const on = !!S.special[sp.id];
+      const body = on ? `<div class="sp-body"><ul>${sp.body(w).map(x => `<li>${x}</li>`).join('')}</ul>`
+        + (sp.actions.length ? `<div class="actions">${sp.actions.map((a, i) => `<button class="act ${a.cls || ''}" data-sp="${sp.id}" data-i="${i}">${esc(a.label)}</button>`).join('')}</div>` : '')
+        + (sp.src ? `<p class="src">${esc(sp.src)}</p>` : '') + '</div>' : '';
+      return `<div class="sp" data-on="${on}"><div class="sp-head"><div class="txt-col"><h3>${esc(sp.name)}</h3><p>${esc(sp.when)}</p></div>`
+        + `<button class="switch" role="switch" aria-checked="${on}" aria-label="${esc(sp.name)}" data-sw="${sp.id}"></button></div>${body}</div>`;
+    }).join('');
+  }
+  $('specialList').addEventListener('click', e => {
+    const sw = e.target.closest('[data-sw]');
+    if (sw) {
+      const sp = SPECIALS.find(x => x.id === sw.dataset.sw);
+      const on = !S.special[sp.id];
+      run(t => A.act.special(S, t, sp.id, on, sp.name));
+      return;
+    }
+    const b = e.target.closest('[data-sp]');
+    if (b) {
+      const sp = SPECIALS.find(x => x.id === b.dataset.sp);
+      const a = sp.actions[+b.dataset.i];
+      run(t => A.act.specialDose(S, t, a.id || sp.id, a.text));
+    }
+  });
+
+  /* ---------- peri-arrest ---------- */
+  const P = { mode: 'brady', comp: null, unstable: null, rhythm: null, qrs: null, reg: null };
+  const CV = {
+    AF: { label: 'Atrial fibrillation', J: 200, sync: true },
+    FL: { label: 'Atrial flutter', J: 200, sync: true },
+    NR: { label: 'Narrow regular', J: 100, sync: true },
+    MVT: { label: 'Monomorphic VT', J: 100, sync: true },
+    PVT: { label: 'Polymorphic VT', J: null, sync: false },
+  };
+  const segQ = (key, opts) => `<div class="seg${opts.length > 3 ? ' seg-many' : ''}" data-p="${key}">${opts.map(([v, l]) => `<button data-v="${v}" aria-pressed="${P[key] === v}">${l}</button>`).join('')}</div>`;
+  const periCount = kind => S.peri.filter(x => x.kind === kind);
+
+  function renderPeri() {
+    qsa('[data-peri-mode] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === P.mode)));
+    const w = settings.weightKg;
+    let h = '';
+    if (P.mode === 'brady') {
+      h += `<div class="q"><div class="qt">Is the bradycardia causing compromise?</div><div class="qd">Heart rate typically under 50 with hypotension, acutely altered mental status, signs of shock, ischaemic chest discomfort or acute heart failure</div>${segQ('comp', [['yes', 'Yes, compromised'], ['no', 'No']])}</div>`;
+      if (P.comp === 'no') {
+        h += `<div class="card" data-k="calm"><h3>Monitor and look for the cause</h3><ul><li>12-lead ECG, IV access, continuous monitoring</li><li>Causes: hyperkalaemia, beta-blocker, calcium-channel blocker or digoxin, ischaemia, hypoxia, hypothermia, raised intracranial pressure</li><li>Reassess often; escalate if signs of compromise appear</li></ul></div>`;
+      } else if (P.comp === 'yes') {
+        const atr = periCount('atropine'); const mg = atr.length;
+        h += `<div class="card" data-k="crit"><h3>Atropine 1 mg IV</h3><ul><li>Repeat every 3–5 min to a maximum of 3 mg</li><li>Avoid in heart-transplant recipients. Unlikely to work in Mobitz II or complete heart block with a wide QRS: go straight to pacing</li></ul>`
+          + `<div class="tracker"><span class="pips">${[1, 2, 3].map(i => `<i class="${i <= mg ? 'on' : ''}"></i>`).join('')}</span><span class="num"><b>${mg} mg</b> given${mg ? ` · last <span id="atrSince">${A.fmt(Clock.now() - atr[atr.length - 1].t)}</span> ago` : ''}</span></div>`
+          + `<div class="actions"><button class="act act-antich" data-peri="atropine" ${mg >= 3 ? 'disabled' : ''}>${mg >= 3 ? 'Maximum 3 mg reached' : 'Atropine 1 mg given'}</button></div></div>`
+          + `<div class="card" data-k="calm"><h3>If atropine fails</h3><ul><li>Transcutaneous pacing: sedate and give analgesia, confirm mechanical capture</li><li>${dose('Dopamine 5–20 mcg/kg/min')} (${Math.round(5 * w)}–${Math.round(20 * w)} mcg/min at ${w} kg)</li><li>${dose('Epinephrine infusion 2–10 mcg/min')}</li><li>Expert consultation; transvenous pacing</li></ul>`
+          + `<div class="actions"><button class="act" data-peri="pace">Pacing started</button><button class="act" data-peri="dopa">Dopamine started</button><button class="act act-vaso" data-peri="epiinf">Epinephrine infusion started</button></div></div>`;
+      }
+    } else {
+      h += `<div class="q"><div class="qt">Is the tachycardia causing serious signs?</div><div class="qd">Heart rate typically ≥150 with hypotension, acutely altered mental status, signs of shock, ischaemic chest discomfort or acute heart failure</div>${segQ('unstable', [['yes', 'Yes, unstable'], ['no', 'No, stable']])}</div>`;
+      if (P.unstable === 'yes') {
+        h += `<div class="q"><div class="qt">Rhythm</div>${segQ('rhythm', Object.entries(CV).map(([k, v]) => [k, v.label]))}</div>`;
+        const cv = CV[P.rhythm];
+        if (cv) {
+          h += `<div class="card" data-k="shock"><div class="lbl">${cv.sync ? 'Synchronized cardioversion' : 'Unsynchronized: defibrillation dose'}</div><div class="energy">${cv.J ? cv.J + ' J' : 'Defibrillate'}</div><ul>`
+            + (cv.sync ? '<li>Sedate whenever feasible. Resynchronize after each shock</li><li>If synchronization is delayed and the patient is critical, use unsynchronized shocks</li><li>If it fails: increase energy stepwise, consider procainamide or amiodarone, look for the cause, get expert help</li>' : '<li>High-energy unsynchronized shock</li><li>Torsades: magnesium 1–2 g IV</li>')
+            + (P.rhythm === 'NR' ? '<li>Adenosine may be tried if it does not delay cardioversion</li>' : '')
+            + `</ul><div class="actions"><button class="act act-shock" data-peri="cv">${cv.sync ? `Cardioversion delivered · ${cv.J} J` : 'Defibrillation delivered'}</button></div></div>`;
+        }
+      } else if (P.unstable === 'no') {
+        h += `<div class="q"><div class="qt">QRS width</div>${segQ('qrs', [['narrow', 'Narrow (<0.12 s)'], ['wide', 'Wide (≥0.12 s)']])}</div>`;
+        h += `<div class="q"><div class="qt">Rhythm</div>${segQ('reg', [['reg', 'Regular'], ['irr', 'Irregular']])}</div>`;
+        if (P.qrs && P.reg) {
+          const ade = periCount('adenosine');
+          const adeBtn = ade.length >= 2 ? '<button class="act" disabled>Adenosine: both doses given</button>' : `<button class="act" data-peri="adenosine">Adenosine ${ade.length ? '12' : '6'} mg given</button>`;
+          const adeTrack = ade.length ? `<div class="tracker num"><span>${ade.map(x => x.text.replace('Adenosine ', '')).join(' → ')}</span><span>last <span id="adeSince">${A.fmt(Clock.now() - ade[ade.length - 1].t)}</span> ago</span></div>` : '';
+          if (P.qrs === 'narrow' && P.reg === 'reg') {
+            h += `<div class="card" data-k="calm"><h3>Vagal manoeuvres, then adenosine</h3><ol><li>Modified Valsalva manoeuvre</li><li>${dose('Adenosine 6 mg')} rapid IV push with a 20 mL flush</li><li>${dose('Adenosine 12 mg')} if needed</li><li>Then a beta-blocker or calcium-channel blocker; expert consultation</li></ol>${adeTrack}<div class="actions"><button class="act" data-peri="vagal">Vagal manoeuvre done</button>${adeBtn}</div></div>`;
+          } else if (P.qrs === 'narrow') {
+            h += `<div class="card" data-k="calm"><h3>Rate control</h3><ul><li>Probable AF, flutter with variable block or MAT</li><li>Beta-blocker or calcium-channel blocker, e.g. ${dose(`diltiazem 0.25 mg/kg (${Math.round(0.25 * w)} mg)`)} IV over 2 min</li><li>Avoid AV-nodal blockers if pre-excitation is suspected</li><li>Consider anticoagulation and expert consultation</li></ul><div class="actions"><button class="act" data-peri="rate">Rate-control drug given</button></div></div>`;
+          } else if (P.reg === 'reg') {
+            h += `<div class="card" data-k="calm"><h3>Wide regular: probable VT</h3><ul><li>Adenosine only if regular and monomorphic</li><li>${dose('Procainamide 20–50 mg/min')} until suppressed, hypotension, QRS widens >50% or ${Math.round(17 * w)} mg (17 mg/kg). Avoid with prolonged QT or heart failure</li><li>Or ${dose('amiodarone 150 mg IV over 10 min')}, repeat if needed, then 1 mg/min for 6 h</li><li>Sotalol was removed from the 2025 algorithm</li><li>Expert consultation; synchronized cardioversion 100 J if it becomes unstable</li></ul>${adeTrack}<div class="actions">${adeBtn}<button class="act" data-peri="procain">Procainamide started</button><button class="act" data-peri="amio150">Amiodarone 150 mg started</button></div></div>`;
+          } else {
+            h += `<div class="card" data-k="crit"><h3>Wide irregular</h3><ul><li>Polymorphic VT: defibrillate if unstable. Torsades: ${dose('magnesium 1–2 g IV')}</li><li>Pre-excited AF: avoid adenosine, beta-blockers, calcium-channel blockers and digoxin; procainamide or cardioversion</li><li>AF with known bundle branch block: treat as narrow irregular</li><li>Expert consultation</li></ul><div class="actions"><button class="act" data-peri="mg">Magnesium given</button></div></div>`;
+          }
+        }
+      }
+    }
+    h += `<div class="card" data-k="calm"><div class="endrow"><span><b>Pulse lost?</b> <span class="muted small">Switches to the arrest clock and keeps this record.</span></span><button class="btn btn-danger" id="periArrest" ${S.phase === 'arrest' ? 'disabled' : ''}>${S.phase === 'arrest' ? 'Arrest clock running' : 'Start arrest clock'}</button></div></div>`;
+    $('periBody').innerHTML = h;
+  }
+  qsa('[data-peri-mode] button').forEach(b => b.addEventListener('click', () => { P.mode = b.dataset.v; renderPeri(); }));
+  const PERI_TEXT = {
+    atropine: () => 'Atropine 1 mg IV', pace: () => 'Transcutaneous pacing started', dopa: () => 'Dopamine infusion started',
+    epiinf: () => 'Epinephrine infusion started', vagal: () => 'Vagal manoeuvre',
+    adenosine: () => `Adenosine ${periCount('adenosine').length ? '12' : '6'} mg IV`,
+    rate: () => 'Rate-control drug given', procain: () => 'Procainamide infusion started', amio150: () => 'Amiodarone 150 mg IV over 10 min',
+    mg: () => 'Magnesium 1–2 g IV',
+    cv: () => { const cv = CV[P.rhythm]; return cv.sync ? `Synchronized cardioversion ${cv.J} J (${cv.label})` : `Defibrillation (${cv.label})`; },
+  };
+  $('periBody').addEventListener('click', e => {
+    const seg = e.target.closest('[data-p] button');
+    if (seg) {
+      const key = seg.parentElement.dataset.p;
+      P[key] = seg.dataset.v;
+      if (key === 'unstable') { P.rhythm = null; P.qrs = null; P.reg = null; }
+      renderPeri(); return;
+    }
+    const b = e.target.closest('[data-peri]');
+    if (b) { const k = b.dataset.peri; const text = PERI_TEXT[k](); run(t => A.act.peri(S, t, k, text)); return; }
+    if (e.target.closest('#periArrest')) startCode(false);
+  });
+
+  function renderRoscLine() {
+    $('roscLine').textContent = S.roscAt ? `ROSC at ${A.clock(S.roscAt - S.t0)} · ${A.fmt(Clock.now() - S.roscAt)} ago. Ticked items are time-stamped.` : 'Checklist from the 2025 AHA post-arrest algorithm. Ticked items are time-stamped.';
+  }
+  function renderRosc() {
+    const ref = S.roscAt || S.t0;
+    renderRoscLine();
+    $('roscList').innerHTML = `<div class="targets"><div><span class="lbl">SpO₂</span><div class="v">90–98%</div></div><div><span class="lbl">PaCO₂</span><div class="v">35–45</div></div><div><span class="lbl">MAP</span><div class="v">≥65</div></div><div><span class="lbl">Temp</span><div class="v">32–37.5 °C</div></div></div>`
+      + ROSC_GROUPS.map(g => `<div class="rgroup"><h3>${esc(g.g)}</h3>${g.items.map(([id, tgt, d]) => {
+        const at = S.rosc[id];
+        return `<label class="ritem"><input type="checkbox" data-ri="${id}" ${at ? 'checked' : ''}><span><span class="tgt">${esc(tgt)}</span><br><span class="small muted">${esc(d)}</span></span><span class="when">${at && ref ? '+' + A.fmt(at - ref) : ''}</span></label>`;
+      }).join('')}</div>`).join('');
+  }
+  $('roscList').addEventListener('change', e => {
+    const cb = e.target.closest('[data-ri]'); if (!cb) return;
+    const item = ROSC_GROUPS.flatMap(g => g.items).find(x => x[0] === cb.dataset.ri);
+    run(t => A.act.roscItem(S, t, item[0], cb.checked, `Post-ROSC: ${item[1]}`), cb.checked ? undefined : false);
+  });
+
+  function renderRecord() {
+    const t = Clock.now();
+    const m = A.summarize(S, t);
+    const cell = (l, v, d) => `<div><span class="lbl">${l}</span><div class="v">${v}</div>${d ? `<div class="d">${d}</div>` : ''}</div>`;
+    if (m) {
+      $('stats').innerHTML = [
+        cell('Duration', A.clock(m.totalMs), m.outcome),
+        cell('Arrest time', A.clock(m.arrestMs), m.rearrests ? `${m.rearrests} re-arrest${m.rearrests > 1 ? 's' : ''}` : ''),
+        cell('First rhythm', m.firstRhythm || '—'),
+        cell('Shocks', m.shocks, m.energies.length ? m.energies.join(' · ') + ' J' : ''),
+        cell('Epinephrine', m.epi, S.epi.length ? `first at ${A.localTime(S.epi[0])}` : ''),
+        cell('First shock', S.shocks.length ? A.localTime(S.shocks[0].t) : '—', S.shocks.length ? A.elapsed(S, S.shocks[0].t) + ' from start' : ''),
+        cell(A.aaPlan(S, settings).plan[0].name, `${m.aa.length}/2`, m.aa.length ? A.aaPlan(S, settings).plan.slice(0, m.aa.length).map(x => x.dose).join(' + ') : ''),
+        cell('Airway', S.airway ? S.airway.type : 'BVM', S.airway ? `at ${A.localTime(S.airway.t)}` : ''),
+        cell('Est. CCF', m.ccf != null && m.pauses.n ? Math.round(m.ccf * 100) + '%' : '—', m.pauses.n ? `${m.pauses.n} pauses · mean ${(m.pauses.mean / 1000).toFixed(1)} s · max ${(m.pauses.max / 1000).toFixed(1)} s` : 'from rhythm-check pauses'),
+      ].join('');
+    } else {
+      $('stats').innerHTML = cell('Status', 'No code yet', S.log.length ? `${S.log.length} peri-arrest entries` : 'Start a code to begin a record').replace('<div>', '<div style="grid-column:1/-1">');
+    }
+    const first = S.t0 != null ? S.t0 : (S.log[0] ? S.log[0].t : t);
+    $('tzLine').textContent = `${A.localDate(first)} · local time, ${A.tzLabel(first)}${S.practice ? ' · practice run, simulated clock' : ''}`;
+    let day = null;
+    const rows = S.log.map(e => {
+      const d = A.localDay(e.t);
+      const sep = day && d !== day ? `<tr class="daysep"><td colspan="4">${esc(A.localDate(e.t))}</td></tr>` : '';
+      day = d;
+      return `${sep}<tr><td class="t">${A.localTime(e.t)}<span class="te-sm">${A.elapsed(S, e.t)}</span></td><td class="te">${A.elapsed(S, e.t)}</td><td><span class="dot dot-${esc(e.type)}"></span></td><td>${esc(e.text)}</td></tr>`;
+    }).join('');
+    $('logTable').tBodies[0].innerHTML = rows || '<tr><td class="muted" colspan="4">Nothing logged yet.</td></tr>';
+    syncSaveButtons();
+  }
+
+  /* ---------- live renders (every tick) ---------- */
+  const C = 2 * Math.PI * 52;
+  function renderLive() {
+    const t = Clock.now();
+    const o = A.advise(S, t, settings);
+    // header
+    const ph = $('phase'), ck = $('clock'), lbl = $('clockLbl');
+    ck.classList.toggle('is-rosc', S.phase === 'rosc');
+    ck.classList.toggle('is-idle', S.phase === 'idle');
+    if (S.phase === 'idle') { ck.textContent = '00:00'; lbl.textContent = 'Arrest time'; ph.dataset.k = 'idle'; ph.textContent = 'Ready'; }
+    else if (S.phase === 'arrest') {
+      ck.textContent = A.clock(t - S.t0); lbl.textContent = 'Arrest time';
+      if (!S.rhythm) { ph.dataset.k = 'unknown'; ph.textContent = 'Rhythm ?'; }
+      else { ph.dataset.k = A.isShockable(S.rhythm) ? 'shock' : 'nonshock'; ph.textContent = A.RHYTHMS[S.rhythm].short; }
+    } else if (S.phase === 'rosc') { ck.textContent = A.clock(t - S.roscAt); lbl.textContent = 'ROSC for'; ph.dataset.k = 'rosc'; ph.textContent = 'ROSC'; }
+    else { ck.textContent = A.clock((S.endAt || t) - S.t0); lbl.textContent = 'Duration'; ph.dataset.k = 'ended'; ph.textContent = 'Ended'; }
+    const mL = $('miniLbl'), mV = $('miniV');
+    if (S.phase === 'arrest' && S.inCheck) {
+      const p = t - S.checkStart;
+      mL.textContent = 'Hands off'; mV.textContent = Math.floor(p / 1000) + 's';
+      mV.dataset.state = p >= A.CFG.PAUSE_WARN ? 'crit' : 'warn';
+    } else if (S.phase === 'arrest' && S.cycleStart == null) {
+      mL.textContent = 'Cycle'; mV.textContent = 'Check'; mV.dataset.state = 'crit';
+    } else if (S.phase === 'arrest') {
+      const left = A.CFG.CYCLE - (t - S.cycleStart);
+      mL.textContent = `Cycle ${S.cycleNo}`;
+      mV.textContent = left >= 0 ? A.fmt(left) : '+' + A.fmt(-left);
+      mV.dataset.state = o.ring ? o.ring.state : 'ok';
+    } else { mL.textContent = 'Cycle'; mV.textContent = '—'; mV.dataset.state = ''; }
+    $('liveDot').hidden = !(S.phase === 'arrest' && tab !== 'arrest');
+    const pr = $('btnPractice');
+    pr.hidden = !S.practice || S.phase === 'idle';
+    $('pracSpeed').textContent = `×${Clock.speed}`;
+
+    if (S.phase === 'arrest') {
+      // now card
+      $('nowCard').dataset.tone = o.tone;
+      $('headline').textContent = o.headline;
+      $('sub').textContent = o.sub;
+      const ring = $('ring'), arc = $('ringArc'), r = o.ring || { mode: 'first', frac: 0, state: 'due' };
+      ring.dataset.state = r.state;
+      let big = '', small = '', frac = r.frac;
+      if (r.mode === 'cycle') { big = r.ms >= 0 ? A.fmt(r.ms) : '+' + A.fmt(-r.ms); small = `CYCLE ${r.cycle}`; }
+      else if (r.mode === 'pause') { big = Math.floor(r.ms / 1000) + 's'; small = 'HANDS-OFF'; }
+      else { big = 'NOW'; small = 'CHECK RHYTHM'; frac = 1; }
+      arc.setAttribute('stroke-dashoffset', String(C * (1 - frac)));
+      $('ringBig').textContent = big; $('ringSmall').textContent = small;
+
+      // keys
+      const find = id => o.tasks.find(x => x.id === id);
+      const ckT = find('check');
+      const kC = $('kCheck');
+      kC.classList.toggle('is-due', !!ckT && (ckT.status === 'due' || ckT.status === 'overdue'));
+      kC.classList.toggle('is-soon', !!ckT && ckT.status === 'soon');
+      $('kCheckD').textContent = !ckT ? 'hands off · under 10 s' : S.cycleStart == null ? 'pads on → check now' : ckT.status === 'later' ? `next in ${A.fmt(ckT.eta)}` : ckT.status === 'soon' ? `in ${A.fmt(ckT.eta)} · pre-charge` : ckT.note;
+      const e = find('epi'), kE = $('kEpi');
+      const isArmed = id => armed && armed.id === id && Date.now() < armed.until;
+      kE.classList.toggle('is-due', e.status === 'due' || e.status === 'overdue');
+      kE.classList.toggle('is-armed', isArmed('epi'));
+      $('kEpiS').textContent = S.epi.length;
+      $('kEpiD').textContent = isArmed('epi') ? armed.msg : e.status === 'due' ? 'due now · 1 mg' : e.status === 'overdue' ? 'overdue · 1 mg' : e.eta ? `next in ${A.fmt(e.eta)}` : '1 mg IV/IO';
+      $('kEpiBarWrap').hidden = !S.epi.length;
+      if (S.epi.length) $('kEpiBar').style.width = Math.min(100, (t - S.epi[S.epi.length - 1]) / A.CFG.EPI_MAX * 100).toFixed(1) + '%';
+      const plan = A.aaPlan(S, settings), aT = find('aa'), kA = $('kAA');
+      kA.dataset.drug = plan.drug;
+      $('kAAT').textContent = plan.plan[0].name;
+      $('kAAD').textContent = plan.next ? `${plan.next.dose}${aT && aT.status === 'due' ? ' · due' : ''}` : 'both doses given';
+      $('kAAS').textContent = `${plan.given}/2`;
+      kA.disabled = !plan.next || !A.isShockable(S.rhythm);
+      if (!A.isShockable(S.rhythm) && plan.next) $('kAAD').textContent = 'refractory VF/pVT only';
+      kA.classList.toggle('is-due', !!aT && aT.status === 'due');
+      kA.classList.toggle('is-armed', isArmed('aa'));
+      if (isArmed('aa')) $('kAAD').textContent = armed.msg;
+      $('kAccessD').textContent = S.access ? `${S.access.route} at ${A.clock(S.access.t - S.t0)}` : 'IV first, IO if delayed';
+      $('kAccessS').hidden = !S.access;
+      $('kAirwayD').textContent = S.airway ? `${S.airway.type} · 10/min, continuous` : 'BVM · 30:2';
+      $('kAirwayS').hidden = !S.airway;
+      $('kAirway').classList.toggle('is-set', !!S.airway);
+      $('kSwapS').textContent = S.swaps.length;
+      const lastCo = S.etco2[S.etco2.length - 1];
+      $('kEtco2D').textContent = lastCo ? `last ${lastCo.v}` : 'log value';
+
+      // queue: actionable first, the rest folded away
+      const STL = { overdue: 'Overdue', due: 'Due', alert: 'Alert', soon: 'Soon', consider: 'Consider', later: 'Later', hold: 'Hold', done: 'Done' };
+      const ACT = ['overdue', 'due', 'alert', 'soon', 'consider'];
+      const row = q => `<li class="${q.status === 'done' ? 'is-done' : ''}"><span class="st st-${q.status}">${STL[q.status]}</span><div><div class="q-l">${esc(q.label)}</div><div class="q-n">${esc(q.note || '')}</div></div></li>`;
+      const nowQ = o.tasks.filter(q => ACT.includes(q.status)), laterQ = o.tasks.filter(q => !ACT.includes(q.status));
+      $('queue').innerHTML = nowQ.length ? nowQ.map(row).join('') : '<li class="q-empty">Nothing due. Keep compressions going.</li>';
+      $('queueLater').innerHTML = laterQ.map(row).join('');
+      $('laterSum').textContent = `Later and done (${laterQ.length})`;
+      $('laterFold').hidden = !laterQ.length;
+
+      // channels
+      const m = A.summarize(S, t);
+      $('chEpi').textContent = S.epi.length;
+      $('chEpiD').textContent = S.epi.length ? `last ${A.fmt(t - S.epi[S.epi.length - 1])} ago` : 'no dose yet';
+      $('chShock').textContent = S.shocks.length;
+      $('chShockD').textContent = `next ${A.nextEnergy(S, settings)} J`;
+      $('chAA').textContent = S.aa.length;
+      $('chAAD').textContent = S.aa.length ? `${plan.plan[0].name} ` + S.aa.map(x => plan.plan[x.n - 1].dose).join(' + ') : plan.plan[0].name;
+      $('chCo2').textContent = lastCo ? lastCo.v : '—';
+      const pts = S.etco2.slice(-12);
+      $('sparkLine').setAttribute('points', pts.length > 1 ? pts.map((p, i) => `${(i / (pts.length - 1)) * 100},${(22 - Math.min(60, p.v) / 60 * 20).toFixed(1)}`).join(' ') : '');
+      const lp = S.pauses[S.pauses.length - 1];
+      $('chPause').textContent = lp ? ((lp.end - lp.start) / 1000).toFixed(0) + ' s' : '—';
+      $('chPauseD').textContent = m.pauses.n ? `mean ${(m.pauses.mean / 1000).toFixed(1)} s · ${m.pauses.over10} over 10 s` : 'last pause';
+      $('chCcf').textContent = m.ccf != null && m.pauses.n ? Math.round(m.ccf * 100) + '%' : '—';
+      $('startedAt').textContent = `Started ${wall(S.t0)}${S.practice ? ' · practice' : ''}`;
+      $('stopInfo').hidden = t - S.t0 < A.CFG.STOP_INFO_AT;
+
+      // recent
+      $('recent').innerHTML = S.log.slice(-4).reverse().map(ev => `<div><span class="t">${ev.t >= S.t0 ? A.clock(ev.t - S.t0) : '—'}</span><span>${esc(ev.text)}</span></div>`).join('');
+    }
+
+    if (S.phase === 'rosc') {
+      const m = A.summarize(S, t);
+      $('roscHead').textContent = `ROSC at ${A.clock(S.roscAt - S.t0)}`;
+      $('roscSub').textContent = `${A.fmt(t - S.roscAt)} since ROSC · arrest time ${A.clock(m.arrestMs)} · ${m.shocks} shock${m.shocks === 1 ? '' : 's'} · ${m.epi} epinephrine`;
+    }
+    if (S.phase === 'ended') {
+      const m = A.summarize(S, t);
+      $('endedText').textContent = `${S.endReason}. Duration ${A.clock(m.totalMs)}, ${m.shocks} shock${m.shocks === 1 ? '' : 's'}, ${m.epi} epinephrine.`;
+    }
+
+    syncCheck(t);
+
+    // badges
+    const treat = Object.values(S.causes).filter(v => v === 'treat').length;
+    $('bCauses').hidden = !treat; $('bCauses').textContent = treat;
+    const spOn = Object.values(S.special).filter(Boolean).length;
+    $('bSpecial').hidden = !spOn; $('bSpecial').textContent = spOn;
+
+    // peri trackers
+    if (tab === 'peri') {
+      const atr = periCount('atropine'), ade = periCount('adenosine');
+      if ($('atrSince') && atr.length) $('atrSince').textContent = A.fmt(t - atr[atr.length - 1].t);
+      if ($('adeSince') && ade.length) $('adeSince').textContent = A.fmt(t - ade[ade.length - 1].t);
+    }
+
+    // time-driven speech
+    const fresh = o.speak.filter(x => !S.spoken[x.key]);
+    if (fresh.length) {
+      fresh.forEach(x => { S.spoken[x.key] = 1; });
+      fresh.sort((a, b) => b.prio - a.prio);
+      Voice.say(fresh[0].text, fresh[0].prio);
+      if (fresh[0].prio >= 1) { try { navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch (err) { /* ignore */ } }
+      persist();
+    }
+  }
+
+  function syncCheck(t) {
+    const sh = $('sh-check');
+    if (S.phase === 'arrest' && S.inCheck) {
+      if (sh.hidden) openSheet('sh-check');
+      const p = t - S.checkStart;
+      $('pauseV').textContent = Math.floor(p / 1000);
+      $('pauseBox').dataset.state = p >= A.CFG.PAUSE_WARN ? 'crit' : p >= A.CFG.PAUSE_AMBER ? 'warn' : 'ok';
+      const cr = S.checkRhythm;
+      $('chkTitle').textContent = `Rhythm check ${S.cycleNo + 1}`;
+      $('chkStep1').hidden = !!cr;
+      $('chkShock').hidden = !(cr && A.isShockable(cr));
+      $('chkPulse').hidden = cr !== 'ORG';
+      $('chkResume').hidden = true;
+      $('btnChkCancel').hidden = !!cr && A.isShockable(cr);
+      if (cr && A.isShockable(cr)) $('shockLbl').textContent = `Shock delivered · ${A.nextEnergy(S, settings)} J`;
+    } else if (!sh.hidden) closeSheets();
+  }
+
+  let lastStaticSig = '';
+  function renderAll() {
+    $('idleView').hidden = S.phase !== 'idle';
+    $('activeView').hidden = S.phase !== 'arrest';
+    $('roscView').hidden = S.phase !== 'rosc';
+    $('endedView').hidden = S.phase !== 'ended';
+    $('caption').hidden = !(S.phase === 'arrest' || S.phase === 'rosc');
+    document.body.classList.toggle('live', S.phase === 'arrest' || S.phase === 'rosc');
+    document.body.classList.toggle('idle', S.phase === 'idle');
+    $('updateBar').hidden = !(PWA.updateReady && S.phase !== 'arrest');
+    syncInstall();
+    const u = $('kUndo'), lastEv = S.log[S.log.length - 1];
+    u.hidden = !(undoStack.length && S.phase === 'arrest');
+    if (!u.hidden) u.textContent = `Undo: ${lastEv ? lastEv.text : 'last action'}`;
+    $('resumeBanner').hidden = !(saved && saved.S && (saved.S.phase === 'arrest' || saved.S.phase === 'rosc') && S.phase === 'idle');
+    if (!$('resumeBanner').hidden) $('resumeText').textContent = `A ${saved.S.practice ? 'practice run' : 'code'} started at ${wall(saved.S.t0, true)} is still open on this device.`;
+    syncSettings(); syncRoles();
+    if (tab === 'causes') renderCauses();
+    if (tab === 'special') renderSpecial();
+    if (tab === 'peri') renderPeri();
+    if (tab === 'rosc') renderRosc();
+    if (tab === 'record') renderRecord();
+    lastStaticSig = sig();
+    renderLive();
+  }
+  const sig = () => `${S.log.length}|${tab}|${Math.floor(Clock.now() / 1000)}`;
+
+  /* ---------- key handlers ---------- */
+  function startCode(practice) {
+    Clock.reset();
+    saved = null;
+    undoStack = [];
+    run(t => A.act.start(S, t, { practice }), practice ? 'Practice run started' : 'Arrest clock started');
+    keepAwake();
+    // ask the browser not to clear this app's storage under pressure (installed app only)
+    try { if (PWA.swOK && navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* ignore */ }
+    setTab('arrest');
+  }
+  $('btnStart').addEventListener('click', () => startCode(false));
+  $('btnStartPractice').addEventListener('click', () => startCode(true));
+  $('btnResume').addEventListener('click', () => {
+    S = saved.S; Clock.resumeAt(saved.offset || 0); saved = null; undoStack = [];
+    keepAwake(); toast('Code resumed', false); renderAll();
+  });
+  $('btnDiscard').addEventListener('click', () => { saved = null; store.del(LS_STATE); renderAll(); });
+  $('btnPractice').addEventListener('click', () => {
+    const order = [1, 2, 4, 8];
+    Clock.setSpeed(order[(order.indexOf(Clock.speed) + 1) % order.length]);
+    renderLive();
+  });
+
+  $('kCheck').addEventListener('click', () => run(t => A.act.check(S, t), false));
+  qsa('#chkStep1 [data-r]').forEach(b => b.addEventListener('click', () => {
+    const r = b.dataset.r;
+    if (r === 'ORG') { run(t => A.act.organised(S, t), false); return; }
+    if (A.isShockable(r)) { run(t => A.act.rhythm(S, t, settings, r), false); return; }
+    run(t => { const res = A.act.rhythm(S, t, settings, r); A.act.resume(S, t); return res; }, `${A.RHYTHMS[r].long} · CPR resumed`);
+  }));
+  $('btnShock').addEventListener('click', () => run(t => A.act.shock(S, t, settings)));
+  $('btnNoShock').addEventListener('click', () => run(t => { A.act.note(S, t, 'No shock delivered'); return A.act.resume(S, t); }));
+  $('btnResumeCPR').addEventListener('click', () => run(t => A.act.resume(S, t)));
+  $('btnPulseYes').addEventListener('click', () => run(t => A.act.rosc(S, t)));
+  $('btnPulseNo').addEventListener('click', () => run(t => { const res = A.act.rhythm(S, t, settings, 'PEA'); A.act.resume(S, t); return res; }, 'PEA · CPR resumed'));
+  $('btnChkCancel').addEventListener('click', () => run(t => A.act.resume(S, t)));
+
+  // A repeat dose within 60 s needs a second tap, so a double tap is not logged as two doses.
+  function guarded(id, lastT, what, fn) {
+    const now = Clock.now();
+    if (lastT != null && now - lastT < 60 * 1000) {
+      if (armed && armed.id === id && Date.now() < armed.until) { armed = null; fn(); return; }
+      armed = { id, until: Date.now() + 3500, msg: `tap again · last ${what} ${A.fmt(now - lastT)} ago` };
+      try { navigator.vibrate && navigator.vibrate([40, 50, 40]); } catch (e) { /* ignore */ }
+      setTimeout(renderLive, 3600);
+      renderLive();
+      return;
+    }
+    fn();
+  }
+  $('kEpi').addEventListener('click', () => guarded('epi', S.epi.length ? S.epi[S.epi.length - 1] : null, 'dose', () => run(t => A.act.epi(S, t))));
+  $('kAA').addEventListener('click', () => guarded('aa', S.aa.length ? S.aa[S.aa.length - 1].t : null, 'dose', () => run(t => A.act.aa(S, t, settings))));
+  $('kUndo').addEventListener('click', undo);
+  $('kBig').addEventListener('click', () => { settings.big = !settings.big; saveSettings(); syncSettings(); });
+  $('btnCfg').addEventListener('click', () => openSheet('sh-settings'));
+  $('kAccess').addEventListener('click', () => openSheet('sh-access'));
+  qsa('[data-acc]').forEach(b => b.addEventListener('click', () => { closeSheets(); run(t => A.act.access(S, t, b.dataset.acc)); }));
+  $('kAirway').addEventListener('click', () => openSheet('sh-airway'));
+  qsa('[data-aw]').forEach(b => b.addEventListener('click', () => { closeSheets(); run(t => A.act.airway(S, t, b.dataset.aw)); }));
+  $('kSwap').addEventListener('click', () => run(t => A.act.swap(S, t)));
+
+  $('coChips').innerHTML = [5, 10, 15, 20, 25, 30, 35, 40, 45].map(v => `<button data-co="${v}">${v}</button>`).join('');
+  const logCo = v => { closeSheets(); run(t => A.act.etco2(S, t, v)); };
+  $('coChips').addEventListener('click', e => { const b = e.target.closest('[data-co]'); if (b) logCo(+b.dataset.co); });
+  $('coSave').addEventListener('click', () => { const v = parseFloat($('coIn').value); if (v >= 0 && v <= 120) { $('coIn').value = ''; logCo(v); } else toast('Enter ETCO₂ between 0 and 120 mmHg', false); });
+  $('kEtco2').addEventListener('click', () => openSheet('sh-etco2'));
+
+  const NOTES = ['POCUS: no cardiac activity', 'POCUS: activity, no pulse', 'POCUS: pericardial effusion', 'POCUS: dilated RV', 'Pads moved to anterior-posterior', 'ABG sent', 'Glucose checked', 'Family present', 'Senior help arrived'];
+  $('noteChips').innerHTML = NOTES.map((n, i) => `<button data-note="${i}">${esc(n)}</button>`).join('');
+  const addNote = text => { closeSheets(); run(t => A.act.note(S, t, text)); };
+  $('noteChips').addEventListener('click', e => { const b = e.target.closest('[data-note]'); if (b) addNote(NOTES[+b.dataset.note]); });
+  $('noteSave').addEventListener('click', () => { const v = $('noteIn').value.trim(); if (v) { $('noteIn').value = ''; addNote(v); } });
+  $('noteIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('noteSave').click(); });
+  $('kNote').addEventListener('click', () => openSheet('sh-note'));
+
+  $('kRosc').addEventListener('click', () => openSheet('sh-rosc'));
+  $('btnRoscYes').addEventListener('click', () => { closeSheets(); run(t => A.act.rosc(S, t)); });
+  $('btnRearrest').addEventListener('click', () => run(t => A.act.rearrest(S, t)));
+  $('btnGoRosc').addEventListener('click', () => setTab('rosc'));
+
+  function openEnd() {
+    const opts = [];
+    if (S.phase === 'rosc') opts.push('Sustained ROSC: handed over');
+    opts.push('Transferred for ECPR or ongoing CPR', 'Resuscitation stopped by team decision');
+    if (S.practice) opts.push('Practice run finished');
+    $('endChoices').innerHTML = opts.map((x, i) => `<button class="btn ${i === 0 && S.phase === 'rosc' ? 'btn-primary' : ''}" data-end="${i}" style="text-align:left">${esc(x)}</button>`).join('');
+    qsa('[data-end]').forEach(b => b.addEventListener('click', () => { closeSheets(); run(t => A.act.end(S, t, opts[+b.dataset.end])); setTab('record'); }));
+    openSheet('sh-end');
+  }
+  $('kEnd').addEventListener('click', openEnd);
+  $('btnEndRosc').addEventListener('click', openEnd);
+  $('btnGoRecord').addEventListener('click', () => setTab('record'));
+
+  /* ---------- copy and save the event log ---------- */
+  function legacyCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    ta.remove();
+    return ok;
+  }
+  async function copyText(text, what) {
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('no clipboard');
+      await navigator.clipboard.writeText(text);
+      $('copyBox').hidden = true;
+      toast(`${what} copied with local times`, false);
+    } catch (e) {
+      if (legacyCopy(text)) { $('copyBox').hidden = true; toast(`${what} copied with local times`, false); return; }
+      const box = $('copyBox');
+      box.hidden = false; box.value = text;
+      if (tab !== 'record') setTab('record');
+      setTimeout(() => { box.focus(); box.select(); }, 50);
+      toast('Select the text below and copy it', false);
+    }
+  }
+  const copyLog = () => copyText(A.recordText(S, Clock.now()), 'Log');
+  $('btnCopy').addEventListener('click', copyLog);
+  $('btnCopyTable').addEventListener('click', () => copyText(A.recordTable(S, '\t'), 'Table'));
+  qsa('[data-copylog]').forEach(b => b.addEventListener('click', copyLog));
+  qsa('[data-goto]').forEach(b => b.addEventListener('click', () => setTab(b.dataset.goto)));
+  $('btnNewCopy').addEventListener('click', () => { closeSheets(); copyLog(); });
+
+  // In the Claude viewer files go through the downloads capability; opened directly, a normal download link works.
+  const inViewer = !!(window.claude && typeof window.claude.use === 'function');
+  let dl = null;
+  if (inViewer) { try { window.claude.use('downloads').then(d => { dl = d; syncSaveButtons(); }, () => {}); } catch (e) { /* ignore */ } }
+  function syncSaveButtons() { const can = !inViewer || !!dl; $('btnSave').hidden = !can; $('btnSaveCsv').hidden = !can; }
+  function fileStem() {
+    const t0 = S.t0 != null ? S.t0 : (S.log[0] ? S.log[0].t : Clock.now());
+    return `code-log-${A.localDay(t0)}-${A.localTime(t0).slice(0, 5).replace(':', '')}`;
+  }
+  async function saveFile(name, data, mime) {
+    if (inViewer) {
+      if (!dl) return;
+      try {
+        const r = await dl.save({ filename: name, data });
+        if (r && r.status === 'saved') toast(`Saved ${name}`, false);
+      } catch (e) {
+        const c = e && e.code;
+        if (c === 'declined') return;
+        if (c === 'rate_limited') { toast('A save is already waiting for your answer', false); return; }
+        toast('Saving is not available here. Use Copy log instead.', false);
+        if (['unavailable', 'not_granted', 'capability_disabled', 'capability_removed'].includes(c)) { dl = null; syncSaveButtons(); }
+      }
+      return;
+    }
+    try {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([data], { type: mime }));
+      a.download = name; document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      toast(`Saved ${name}`, false);
+    } catch (e) { toast('Saving failed. Use Copy log instead.', false); }
+  }
+  $('btnSave').addEventListener('click', () => saveFile(`${fileStem()}.txt`, A.recordText(S, Clock.now()), 'text/plain;charset=utf-8'));
+  $('btnSaveCsv').addEventListener('click', () => saveFile(`${fileStem()}.csv`, '﻿' + A.recordTable(S, ','), 'text/csv;charset=utf-8'));
+
+  /* ---------- voice commands ---------- */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let inFrame = inViewer;
+  try { inFrame = inFrame || window.self !== window.top; } catch (e) { inFrame = true; }
+  const MIC_MSG = {
+    'not-allowed': 'The microphone is blocked here. Allow it in the browser, or open the offline copy in Chrome, Edge or Safari.',
+    'service-not-allowed': 'This browser does not allow speech recognition here.',
+    'audio-capture': 'No microphone was found.',
+    'network': 'Voice commands need an internet connection in this browser.',
+    'language-not-supported': 'This browser does not support the chosen accent. Pick another in Settings.',
+  };
+  const Listen = {
+    rec: null, on: false, state: 'off', netFails: 0,
+    set(state, msg) {
+      this.state = state;
+      const b = $('btnMic'); b.dataset.state = state; b.setAttribute('aria-pressed', String(state === 'on'));
+      if (msg) { toast(msg, false); caption(msg, 'heard-miss'); }
+      updateVoiceSheet();
+    },
+    start() {
+      if (!SR) { openVoiceSheet(); return; }
+      this.on = true; this.netFails = 0; this.spawn();
+    },
+    restart() { try { this.rec && this.rec.abort(); } catch (e) { /* ignore */ } },
+    spawn() {
+      let r;
+      try { r = new SR(); } catch (e) { this.on = false; this.set('error', 'Voice commands could not start in this browser.'); return; }
+      r.lang = settings.srLang || 'en-GB'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
+      r.onstart = () => { if (this.state !== 'on') { this.set('on'); Voice.say(R.listening, 1); } };
+      r.onresult = e => this.onResult(e);
+      r.onerror = e => {
+        const c = e.error;
+        if (c === 'network') { if (++this.netFails >= 3) { this.on = false; this.set('error', MIC_MSG.network); } return; }
+        if (MIC_MSG[c]) { this.on = false; this.set('error', MIC_MSG[c]); if (c === 'not-allowed') openVoiceSheet(); }
+      };
+      r.onend = () => {
+        if (this.on) setTimeout(() => { if (this.on) this.spawn(); }, 250);
+        else if (this.state === 'on') this.set('off');
+      };
+      this.rec = r;
+      try { r.start(); } catch (e) { this.on = false; this.set('error', 'Voice commands could not start here.'); }
+    },
+    stop() { this.on = false; try { this.rec && this.rec.abort(); } catch (e) { /* ignore */ } this.set('off'); },
+    onResult(e) {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const res = e.results[i];
+        if (!res || !res[0]) continue;
+        if (res.isFinal) { this.netFails = 0; handleHeard(Array.from(res).map(a => a.transcript).filter(Boolean)); }
+        else if (!Voice.isEcho(res[0].transcript)) caption(`“${res[0].transcript.trim()}”`, 'heard-interim');
+      }
+    },
+  };
+
+  const HIGH = ['epi', 'aa', 'shock', 'rosc', 'start', 'noshock'];
+  function handleHeard(alts) {
+    const heard = (alts[0] || '').trim();
+    if (!heard || Voice.isEcho(heard)) return;
+    let it = VC.parse(heard);
+    if (!it.type) {
+      for (const a of alts.slice(1)) { const p = VC.parse(a); if (p.type && !HIGH.includes(p.type)) { it = p; break; } }
+    }
+    if (!it.type) { caption(`“${heard}” · no command`, 'heard-miss'); return; }
+    caption(`“${heard}”`, 'heard');
+    execVoice(it, heard);
+  }
+
+  const vLast = {};
+  function runVoice(fn, conf) {
+    const r = run(fn, undefined, 'voice');
+    if (!r.say && conf) Voice.say(conf, 1);
+    return r;
+  }
+  function spokenDur(ms) {
+    const s = Math.max(0, Math.round(ms / 1000)), m = Math.floor(s / 60), r = s % 60;
+    if (!m) return `${r} second${r === 1 ? '' : 's'}`;
+    return `${m} minute${m > 1 ? 's' : ''}${r ? ' ' + r : ''}`;
+  }
+  function statusSpeech() {
+    const t = Clock.now();
+    if (S.phase === 'idle') return 'No code running.';
+    if (S.phase === 'ended') return 'The code has ended.';
+    if (S.phase === 'rosc') return `Return of circulation for ${spokenDur(t - S.roscAt)}.`;
+    const o = A.advise(S, t, settings);
+    const parts = [`Arrest time ${spokenDur(t - S.t0)}.`];
+    if (S.rhythm) parts.push(`Last rhythm ${A.RHYTHMS[S.rhythm].long}.`);
+    if (S.cycleStart != null && !S.inCheck) {
+      const left = A.CFG.CYCLE - (t - S.cycleStart);
+      parts.push(left > 0 ? `Cycle ${S.cycleNo}, ${spokenDur(left)} to the next analysis.` : 'The next analysis is overdue.');
+    }
+    parts.push(`${S.shocks.length} ${S.shocks.length === 1 ? 'shock' : 'shocks'}.`);
+    parts.push(S.epi.length ? `Epinephrine ${S.epi.length} ${S.epi.length === 1 ? 'dose' : 'doses'}, the last ${spokenDur(t - S.epi[S.epi.length - 1])} ago.` : 'No epinephrine yet.');
+    const name = { check: 'the rhythm analysis', epi: 'epinephrine', aa: A.aaPlan(S, settings).plan[0].name, access: 'vascular access', pmcd: 'resuscitative hysterotomy' };
+    const due = o.tasks.filter(x => (x.status === 'due' || x.status === 'overdue') && name[x.id]).map(x => name[x.id]);
+    if (due.length) parts.push(`Due now: ${due.slice(0, 2).join(', and ')}.`);
+    return parts.join(' ');
+  }
+
+  function execVoice(it, heard) {
+    const t = Clock.now();
+    const say = x => Voice.say(x, 1);
+    const ago = ms => t - ms;
+    switch (it.type) {
+      case 'stop': Listen.stop(); say(R.voiceOff); return;
+      case 'undo': if (!undoStack.length) { say(R.nothingToUndo); return; } undo(); say(R.undone); return;
+      case 'status': say(statusSpeech()); return;
+      case 'start': if (S.phase === 'idle') startCode(false); return;
+      case 'note':
+        if (S.phase === 'idle' || (vLast.note && vLast.note.text === it.text && ago(vLast.note.t) < 15000)) return;
+        vLast.note = { text: it.text, t };
+        runVoice(tt => A.act.note(S, tt, it.text), R.noteAdded); return;
+      default: break;
+    }
+    if (S.phase !== 'arrest') { caption(`“${heard}” · no arrest running`, 'heard-miss'); return; }
+    switch (it.type) {
+      case 'check': if (!S.inCheck) runVoice(tt => A.act.check(S, tt)); return;
+      case 'rhythm': {
+        const r = it.rhythm;
+        if (S.inCheck && S.checkRhythm && S.checkRhythm !== 'ORG') { if (S.checkRhythm !== r) say(R.rhythmSet(A.RHYTHMS[S.checkRhythm].long)); return; }
+        if (S.inCheck && S.checkRhythm === 'ORG' && r === 'ORG') return;
+        if (!S.inCheck && S.rhythms.length && S.rhythms[S.rhythms.length - 1].r === r && ago(S.rhythms[S.rhythms.length - 1].t) < 15000) return;
+        runVoice(tt => {
+          if (!S.inCheck) A.act.check(S, tt);
+          if (r === 'ORG') return A.act.organised(S, tt);
+          const res = A.act.rhythm(S, tt, settings, r);
+          if (!A.isShockable(r)) A.act.resume(S, tt);
+          return res;
+        });
+        return;
+      }
+      case 'shock': {
+        if (S.inCheck && A.isShockable(S.checkRhythm)) { runVoice(tt => A.act.shock(S, tt, settings)); return; }
+        const ls = S.shocks[S.shocks.length - 1];
+        if (ls && ago(ls.t) < 20000) return; // someone repeating the call-out
+        if (!vLast.shockWarn || ago(vLast.shockWarn) > 10000) { vLast.shockWarn = t; say(R.shockNoRhythm); }
+        return;
+      }
+      case 'noshock':
+        if (S.inCheck && A.isShockable(S.checkRhythm)) runVoice(tt => { A.act.note(S, tt, 'No shock delivered'); return A.act.resume(S, tt); });
+        return;
+      case 'resume':
+        if (!S.inCheck) return;
+        if (A.isShockable(S.checkRhythm)) { say(R.shockPending); return; }
+        if (S.checkRhythm === 'ORG') { say(R.pulsePending); return; }
+        runVoice(tt => A.act.resume(S, tt)); return;
+      case 'nopulse':
+        if (S.inCheck && S.checkRhythm === 'ORG') runVoice(tt => { const res = A.act.rhythm(S, tt, settings, 'PEA'); A.act.resume(S, tt); return res; });
+        else if (S.inCheck && !S.checkRhythm) say(R.nameRhythm);
+        return;
+      case 'rosc':
+        if (S.inCheck && (S.checkRhythm === 'ORG' || !S.checkRhythm)) { runVoice(tt => { if (S.checkRhythm !== 'ORG') A.act.organised(S, tt); return A.act.rosc(S, tt); }); return; }
+        if (S.inCheck) { say(R.confirmScreen); return; }
+        openSheet('sh-rosc'); say(R.confirmRosc); return;
+      case 'epi': {
+        const le = S.epi[S.epi.length - 1];
+        if (le && ago(le) < 60000) {
+          if (ago(le) > 8000 && (!vLast.epiWarn || ago(vLast.epiWarn) > 10000)) { vLast.epiWarn = t; say(R.epiRecent(Math.round(ago(le) / 1000))); }
+          return;
+        }
+        runVoice(tt => A.act.epi(S, tt), R.epiLogged); return;
+      }
+      case 'aa': {
+        const nameOf = d => (d === 'lido' ? 'Lidocaine' : 'Amiodarone');
+        if (S.aa.length && S.aa[0].drug !== it.drug) { say(R.aaOther(nameOf(S.aa[0].drug))); return; }
+        const la = S.aa[S.aa.length - 1];
+        if (la && ago(la.t) < 60000) {
+          if (ago(la.t) > 8000 && (!vLast.aaWarn || ago(vLast.aaWarn) > 10000)) { vLast.aaWarn = t; say(R.aaRecent); }
+          return;
+        }
+        if (!A.isShockable(S.rhythm)) { say(R.aaNotIndicated); return; }
+        if (!S.aa.length && it.drug !== settings.aaDrug) { settings.aaDrug = it.drug; saveSettings(); syncSettings(); }
+        const plan = A.aaPlan(S, settings);
+        if (!plan.next) { say(R.aaDone); return; }
+        runVoice(tt => A.act.aa(S, tt, settings), R.aaLogged(plan.next.name, plan.next.dose)); return;
+      }
+      case 'access':
+        if (S.access && S.access.route === it.route && ago(S.access.t) < 30000) return;
+        closeSheets(); runVoice(tt => A.act.access(S, tt, it.route), R.accessLogged); return;
+      case 'airway':
+        if (S.airway && S.airway.type === it.kind && ago(S.airway.t) < 30000) return;
+        closeSheets(); runVoice(tt => A.act.airway(S, tt, it.kind)); return;
+      case 'swap': {
+        const lw = S.swaps[S.swaps.length - 1];
+        if (lw && ago(lw) < 20000) return;
+        runVoice(tt => A.act.swap(S, tt), R.swapLogged); return;
+      }
+      case 'etco2': {
+        const lc = S.etco2[S.etco2.length - 1];
+        if (lc && lc.v === it.value && ago(lc.t) < 15000) return;
+        closeSheets(); runVoice(tt => A.act.etco2(S, tt, it.value), `End tidal ${it.value}.`); return;
+      }
+      default: return;
+    }
+  }
+
+  function updateVoiceSheet() {
+    const el = $('voiceAvail'), btn = $('btnMicStart');
+    if (!SR) { el.dataset.k = 'warn'; el.textContent = 'This browser has no speech recognition. Use Chrome, Edge or Safari.'; btn.hidden = true; return; }
+    btn.hidden = false;
+    btn.textContent = Listen.on ? 'Stop listening' : 'Start listening';
+    if (Listen.state === 'error') { el.dataset.k = 'warn'; el.textContent = inFrame ? 'The microphone is blocked inside this embedded view. Open the offline copy (ACLS-Code-Leader-offline.html) directly in Chrome, Edge or Safari to use voice commands.' : 'The microphone could not start. Check the browser’s microphone permission for this page, then try again.'; return; }
+    if (inFrame) { el.dataset.k = 'warn'; el.textContent = 'Embedded views usually block the microphone. If listening does not start, open the offline copy directly in Chrome, Edge or Safari.'; return; }
+    el.dataset.k = 'ok';
+    el.textContent = Listen.on ? 'Listening. The red dot on the microphone button shows it is on.' : 'Ready. Chrome and Edge send audio to an online speech service, so they need an internet connection.';
+  }
+  function openVoiceSheet() { updateVoiceSheet(); openSheet('sh-voice'); }
+  $('btnMic').addEventListener('click', () => {
+    if (Listen.on) { Listen.stop(); caption(R.voiceOff, 'said'); return; }
+    if (!SR || inFrame) { openVoiceSheet(); return; }
+    Listen.start();
+  });
+  $('btnMicStart').addEventListener('click', () => { if (Listen.on) Listen.stop(); else { closeSheets(); Listen.start(); } });
+  $('btnVoiceHelp').addEventListener('click', openVoiceSheet);
+  const askNew = () => openSheet('sh-new');
+  $('btnClear').addEventListener('click', askNew);
+  $('btnNewCode').addEventListener('click', askNew);
+  $('btnNewYes').addEventListener('click', () => {
+    closeSheets();
+    const roles = S.roles;
+    S = A.newState(); S.roles = roles || {};
+    store.del(LS_STATE); undoStack = []; Clock.reset(); Metro.on && Metro.stop(); $('btnMetro').setAttribute('aria-pressed', 'false');
+    $('copyBox').hidden = true;
+    setTab('arrest');
+    toast('Ready for a new code', false);
+  });
+
+  $('btnVoice').addEventListener('click', () => {
+    settings.voice = !settings.voice; saveSettings(); syncSettings();
+    if (settings.voice) Voice.say('Voice prompts on.', 2); else { try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } caption('Voice prompts off; captions stay on'); }
+  });
+  $('btnMetro').addEventListener('click', () => {
+    if (Metro.on) { Metro.stop(); $('btnMetro').setAttribute('aria-pressed', 'false'); caption('Metronome off'); return; }
+    if (Metro.start()) { $('btnMetro').setAttribute('aria-pressed', 'true'); caption(`Metronome ${settings.bpm}/min · ${S.airway ? 'breath cue every 6 s' : '30:2 breath cues'} · silent during rhythm checks`); }
+    else toast('Audio is not available on this device', false);
+  });
+  $('btnSettings').addEventListener('click', () => openSheet('sh-settings'));
+  $('btnTestVoice').addEventListener('click', () => Voice.say('Fifteen seconds to the next analysis. Next compressor get ready.', 2));
+  $('toastUndo').addEventListener('click', () => { $('toast').hidden = true; undo(); });
+
+  /* ---------- swipe a sheet down to close it (not the rhythm check) ---------- */
+  qsa('.sheet').forEach(sh => {
+    let y0 = null, dy = 0;
+    sh.addEventListener('touchstart', e => { y0 = sh.scrollTop <= 0 && sh.id !== 'sh-check' ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
+    sh.addEventListener('touchmove', e => {
+      if (y0 == null) return;
+      dy = Math.max(0, e.touches[0].clientY - y0);
+      sh.style.transform = dy ? `translateY(${dy}px)` : '';
+    }, { passive: true });
+    sh.addEventListener('touchend', () => {
+      if (y0 != null && dy > 90) closeSheets();
+      sh.style.transform = ''; y0 = null; dy = 0;
+    });
+  });
+
+  /* ---------- installable app (PWA): offline cache, safe updates, install prompt ---------- */
+  const standalone = (() => { try { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; } catch (e) { return false; } })();
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  PWA.swOK = 'serviceWorker' in navigator && !inViewer && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+  if (PWA.swOK) {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      PWA.reg = reg;
+      const ready = () => { PWA.updateReady = true; renderAll(); };
+      if (reg.waiting && navigator.serviceWorker.controller) ready();
+      reg.addEventListener('updatefound', () => {
+        const w = reg.installing;
+        if (w) w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) ready(); });
+      });
+      // look for a new version whenever the app comes back to the foreground
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+    }).catch(() => {});
+    // never reload by itself: only after the user taps Reload, and never during an arrest
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (PWA.wantReload) location.reload(); });
+  }
+  $('btnUpdate').addEventListener('click', () => {
+    if (S.phase === 'arrest') { toast('Finish the code before updating', false); return; }
+    const w = PWA.reg && PWA.reg.waiting;
+    if (!w) { location.reload(); return; }
+    PWA.wantReload = true; w.postMessage('skipWaiting');
+  });
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); PWA.deferred = e; syncInstall(); });
+  window.addEventListener('appinstalled', () => { PWA.deferred = null; syncInstall(); toast('Code Leader installed', false); });
+  function syncInstall() {
+    const card = $('installCard');
+    if (standalone || inViewer || S.phase !== 'idle') { card.hidden = true; return; }
+    if (PWA.deferred) { card.hidden = false; $('btnInstall').hidden = false; $('installText').textContent = 'Install Code Leader on this phone. It opens full screen, keeps the microphone permission and works without internet.'; return; }
+    if (isIOS && PWA.swOK) { card.hidden = false; $('btnInstall').hidden = true; $('installText').textContent = 'To install on iPhone or iPad: tap Share, then Add to Home Screen.'; return; }
+    card.hidden = true;
+  }
+  $('btnInstall').addEventListener('click', async () => {
+    const d = PWA.deferred; if (!d) return;
+    d.prompt();
+    try { await d.userChoice; } catch (e) { /* ignore */ }
+    PWA.deferred = null; syncInstall();
+  });
+
+  /* ---------- boot ---------- */
+  if (saved && saved.S) {
+    if (saved.S.phase === 'ended' || saved.S.phase === 'idle') { S = saved.S; Clock.resumeAt(saved.offset || 0); saved = null; }
+  }
+  renderAll();
+  setInterval(() => {
+    if (tab === 'record' && sig() !== lastStaticSig) { renderRecord(); lastStaticSig = sig(); }
+    if (tab === 'rosc' && S.roscAt) renderRoscLine();
+    renderLive();
+  }, 250);
+})();
+
+</script>
+</body>
+</html>
